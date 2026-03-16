@@ -1,0 +1,8 @@
+{
+  "name": "ClearCard - Smart Communication Cards",
+  "description": "A modern, AI-powered communication tool for the Deaf community featuring high-contrast digital note cards, secure personal info storage, and instant template generation.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
