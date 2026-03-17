@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeftIcon, TrashIcon, EditIcon, PlusIcon } from './Icons';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Mic, MicOff } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -40,6 +40,8 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
   const [input, setInput] = useState('');
   const [activeSender, setActiveSender] = useState<'deaf' | 'hearing'>('deaf');
   const [editingName, setEditingName] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = React.useRef<any>(null);
   const [nameInput, setNameInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -80,8 +82,73 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
     if (activeConvId === id) setActiveConvId(null);
   };
 
+  const startListening = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Voice recognition is not supported on this browser. Try Chrome or Safari.');
+      return;
+    }
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    let fullTranscript = '';
+
+    const startRecognition = () => {
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => setIsListening(true);
+
+      recognition.onresult = (event: any) => {
+        let interim = '';
+        let final = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const t = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            final += t + ' ';
+          } else {
+            interim += t;
+          }
+        }
+        if (final) fullTranscript += final;
+        setInput((fullTranscript + interim).trim());
+      };
+
+      recognition.onend = () => {
+        // Auto-restart if still listening (keeps mic open until user taps send or mic)
+        if (recognitionRef.current && isListening) {
+          try { recognition.start(); } catch {}
+        }
+      };
+
+      recognition.onerror = (e: any) => {
+        if (e.error === 'no-speech') {
+          // Restart silently on no-speech
+          try { recognition.start(); } catch {}
+        } else {
+          setIsListening(false);
+        }
+      };
+
+      recognition.start();
+    };
+
+    startRecognition();
+  };
+
   const sendMessage = () => {
     if (!input.trim() || !activeConvId) return;
+    // Stop mic if listening
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    }
     const msg: Message = {
       id: Math.random().toString(36).substr(2, 9),
       text: input.trim(),
@@ -285,6 +352,18 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
           className="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3 text-white font-bold text-base outline-none resize-none max-h-32 leading-snug"
           style={{ minHeight: '48px' }}
         />
+        {activeSender === 'hearing' && (
+          <button
+            onClick={startListening}
+            className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black active:scale-90 transition-all shrink-0 border ${
+              isListening ? 'text-white animate-pulse' : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+            }`}
+            style={isListening ? { backgroundColor: '#E53935', borderColor: '#E53935' } : {}}
+            aria-label="Voice to text"
+          >
+            {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+          </button>
+        )}
         <button
           onClick={sendMessage}
           disabled={!input.trim()}
