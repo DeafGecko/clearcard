@@ -26,4 +26,5 @@ export interface UserPreferences {
   accentColor: string;
   displayTextColor: string;
   passcode: string;
+
 }

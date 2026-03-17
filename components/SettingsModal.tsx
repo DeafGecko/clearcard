@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { UserPreferences } from '../types';
 import { ArrowLeftIcon, LockIcon, CirclePlusIcon } from './Icons';
@@ -26,12 +25,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
   const colorInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
-    onSave({
-      ...prefs,
-      accentColor: accent,
-      displayTextColor: displayTextCol,
-      passcode: newPasscode
-    });
+    onSave({ ...prefs, accentColor: accent, displayTextColor: displayTextCol, passcode: newPasscode });
     onClose();
   };
 
@@ -43,161 +37,81 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
     }
   };
 
-  const handleCustomColorClick = () => {
-    colorInputRef.current?.click();
-  };
-
-  const handleCustomColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAccent(e.target.value);
-  };
-
   const isCustomColor = !MODERN_COLORS.some(c => c.value === accent);
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4 overflow-hidden">
-      <div 
-        className="bg-zinc-900 w-full max-w-[320px] rounded-[32px] border border-zinc-800 shadow-2xl flex flex-col p-6 animate-in zoom-in-95 fade-in duration-200 overflow-y-auto max-h-[90vh] no-scrollbar"
-        role="dialog"
-        aria-modal="true"
-      >
+      <div className="bg-zinc-900 w-full max-w-[320px] rounded-[32px] border border-zinc-800 shadow-2xl flex flex-col p-6 animate-in zoom-in-95 fade-in duration-200 overflow-y-auto max-h-[90vh] no-scrollbar" role="dialog" aria-modal="true">
+
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl font-black">Settings</h2>
-          <button 
-            onClick={onClose} 
-            className="p-2 bg-zinc-800 rounded-xl active:scale-90 transition-transform text-zinc-400"
-            aria-label="Close settings"
-          >
+          <button onClick={onClose} className="p-2 bg-zinc-800 rounded-xl active:scale-90 transition-transform text-zinc-400">
             <ArrowLeftIcon />
           </button>
         </div>
 
         <div className="space-y-8">
-          {/* Accent Color Section */}
+
+          {/* Accent Color */}
           <section>
             <label className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4">Accent Theme</label>
-            <div className="flex flex-wrap gap-2.5 items-center justify-start">
+            <div className="flex flex-wrap gap-2.5 items-center">
               {MODERN_COLORS.map((color) => (
                 <button
                   key={color.value}
                   onClick={() => setAccent(color.value)}
-                  className={`w-8 h-8 rounded-full transition-all duration-200 relative flex items-center justify-center ${
-                    accent === color.value 
-                      ? 'ring-2 ring-white ring-offset-2 ring-offset-zinc-900' 
-                      : 'opacity-50 hover:opacity-100 scale-90'
-                  }`}
+                  className={`w-8 h-8 rounded-full transition-all duration-200 flex items-center justify-center ${accent === color.value ? 'ring-2 ring-white ring-offset-2 ring-offset-zinc-900' : 'opacity-50 hover:opacity-100 scale-90'}`}
                   style={{ backgroundColor: color.value }}
-                  aria-label={`Select ${color.name}`}
                 >
-                  {accent === color.value && (
-                    <div className="w-1.5 h-1.5 bg-black rounded-full" />
-                  )}
+                  {accent === color.value && <div className="w-1.5 h-1.5 bg-black rounded-full" />}
                 </button>
               ))}
-              
               <div className="relative">
-                <input 
-                  type="color" 
-                  ref={colorInputRef}
-                  className="absolute inset-0 opacity-0 pointer-events-none"
-                  onChange={handleCustomColorChange}
-                />
+                <input type="color" ref={colorInputRef} className="absolute inset-0 opacity-0 pointer-events-none" onChange={(e) => setAccent(e.target.value)} />
                 <button
-                  onClick={handleCustomColorClick}
-                  className={`w-8 h-8 rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center transition-all duration-200 ${
-                    isCustomColor 
-                      ? 'ring-2 ring-white ring-offset-2 ring-offset-zinc-900 border-solid' 
-                      : 'opacity-50 hover:opacity-100'
-                  }`}
+                  onClick={() => colorInputRef.current?.click()}
+                  className={`w-8 h-8 rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center transition-all ${isCustomColor ? 'ring-2 ring-white ring-offset-2 ring-offset-zinc-900 border-solid' : 'opacity-50 hover:opacity-100'}`}
                   style={isCustomColor ? { backgroundColor: accent } : {}}
-                  aria-label="Pick custom color"
                 >
-                  <div className={isCustomColor ? 'text-black scale-75' : 'text-zinc-500 scale-75'}>
-                    <CirclePlusIcon />
-                  </div>
+                  <div className={isCustomColor ? 'text-black scale-75' : 'text-zinc-500 scale-75'}><CirclePlusIcon /></div>
                 </button>
               </div>
             </div>
           </section>
 
-          {/* Display Text Color Section */}
+          {/* Display Text Color */}
           <section>
             <label className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4">Display Text Color</label>
             <div className="flex gap-3">
-              <button 
-                onClick={() => setDisplayTextCol('#FFFFFF')}
-                className={`flex-1 h-10 rounded-xl font-bold text-xs border transition-all ${
-                  displayTextCol === '#FFFFFF' ? 'bg-white text-black border-white' : 'bg-zinc-800 text-white border-zinc-700'
-                }`}
-              >
-                White
-              </button>
-              <button 
-                onClick={() => setDisplayTextCol('#FFFF00')}
-                className={`flex-1 h-10 rounded-xl font-bold text-xs border transition-all ${
-                  displayTextCol === '#FFFF00' ? 'bg-yellow-400 text-black border-yellow-400' : 'bg-zinc-800 text-yellow-400 border-zinc-700'
-                }`}
-              >
-                Yellow
-              </button>
+              <button onClick={() => setDisplayTextCol('#FFFFFF')} className={`flex-1 h-10 rounded-xl font-bold text-xs border transition-all ${displayTextCol === '#FFFFFF' ? 'bg-white text-black border-white' : 'bg-zinc-800 text-white border-zinc-700'}`}>White</button>
+              <button onClick={() => setDisplayTextCol('#FFFF00')} className={`flex-1 h-10 rounded-xl font-bold text-xs border transition-all ${displayTextCol === '#FFFF00' ? 'bg-yellow-400 text-black border-yellow-400' : 'bg-zinc-800 text-yellow-400 border-zinc-700'}`}>Yellow</button>
             </div>
           </section>
 
-          {/* Passcode Section */}
+          {/* Passcode */}
           <section>
             <label className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-3">Security</label>
             <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-zinc-900 rounded-lg text-zinc-500 scale-75">
-                    <LockIcon />
-                  </div>
+                  <div className="p-1.5 bg-zinc-900 rounded-lg text-zinc-500 scale-75"><LockIcon /></div>
                   <h3 className="font-bold text-sm">Passcode</h3>
                 </div>
                 {!isChangingPasscode && (
-                  <button 
-                    onClick={() => setIsChangingPasscode(true)}
-                    className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-zinc-900 rounded-lg hover:text-white transition-colors"
-                    style={{ color: accent }}
-                  >
-                    Change
-                  </button>
+                  <button onClick={() => setIsChangingPasscode(true)} className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-zinc-900 rounded-lg" style={{ color: accent }}>Change</button>
                 )}
               </div>
-
               {isChangingPasscode ? (
-                <div className="space-y-3 animate-in fade-in zoom-in duration-200">
-                  <input 
-                    type="password"
-                    inputMode="numeric"
-                    maxLength={6}
-                    autoFocus
-                    value={passcodeInput}
-                    onChange={(e) => setPasscodeInput(e.target.value.replace(/\D/g, ''))}
-                    placeholder="6 digits"
-                    className="w-full bg-black border border-zinc-800 rounded-xl h-10 px-4 text-center font-black text-lg tracking-[0.5em] focus:outline-none focus:border-zinc-700"
-                  />
+                <div className="space-y-3">
+                  <input type="password" inputMode="numeric" maxLength={6} autoFocus value={passcodeInput} onChange={(e) => setPasscodeInput(e.target.value.replace(/\D/g, ''))} placeholder="6 digits" className="w-full bg-black border border-zinc-800 rounded-xl h-10 px-4 text-center font-black text-lg tracking-[0.5em] focus:outline-none" />
                   <div className="flex gap-2">
-                     <button 
-                      onClick={() => { setIsChangingPasscode(false); setPasscodeInput(''); }}
-                      className="flex-1 h-9 bg-zinc-900 rounded-lg font-bold text-[10px]"
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      onClick={handleUpdatePasscode}
-                      disabled={passcodeInput.length !== 6}
-                      className="flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30"
-                      style={{ backgroundColor: accent, color: 'black' }}
-                    >
-                      Set
-                    </button>
+                    <button onClick={() => { setIsChangingPasscode(false); setPasscodeInput(''); }} className="flex-1 h-9 bg-zinc-900 rounded-lg font-bold text-[10px]">Cancel</button>
+                    <button onClick={handleUpdatePasscode} disabled={passcodeInput.length !== 6} className="flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30" style={{ backgroundColor: accent, color: 'black' }}>Set</button>
                   </div>
                 </div>
               ) : (
                 <div className="flex gap-1.5 px-1 py-1">
-                  {[...Array(6)].map((_, i) => (
-                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-zinc-800" />
-                  ))}
+                  {[...Array(6)].map((_, i) => <div key={i} className="w-1.5 h-1.5 rounded-full bg-zinc-800" />)}
                 </div>
               )}
             </div>
@@ -205,15 +119,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
         </div>
 
         <div className="mt-10">
-          <button
-            onClick={handleSave}
-            className="w-full h-14 rounded-2xl font-black text-sm shadow-lg active:scale-95 transition-all"
-            style={{ 
-              backgroundColor: accent, 
-              color: 'black', 
-              boxShadow: `0 8px 24px ${accent}30` 
-            }}
-          >
+          <button onClick={handleSave} className="w-full h-14 rounded-2xl font-black text-sm active:scale-95 transition-all" style={{ backgroundColor: accent, color: 'black' }}>
             SAVE CHANGES
           </button>
         </div>

@@ -52,7 +52,8 @@ const DEFAULT_PREFS: UserPreferences = {
   vaultLocked: true,
   accentColor: '#FACC15', // Tailwind yellow-400
   displayTextColor: '#FFFFFF', // Default set to white
-  passcode: '123456'
+  passcode: '123456',
+  theme: 'dark'
 };
 
 export const storage = {

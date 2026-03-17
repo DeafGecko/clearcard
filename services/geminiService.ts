@@ -1,50 +1,42 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
 import { Category } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+async function callClaude(prompt: string): Promise<string> {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+  const data = await response.json();
+  return data.content?.[0]?.text || "";
+}
 
 export async function generateSmartCard(prompt: string, categories: Category[]) {
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Generate a clear, professional communication card text for a Deaf person based on this request: "${prompt}". 
-      Keep it concise and readable. Return it as a JSON object with 'title', 'content', and 'category'. 
-      Available categories: ${categories.join(', ')}. Pick the most relevant one or create a logical one if none fit perfectly.`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            title: { type: Type.STRING },
-            content: { type: Type.STRING },
-            category: { type: Type.STRING },
-          },
-          required: ["title", "content", "category"],
-        },
-      },
-    });
+  const text = await callClaude(
+    `Generate a clear, professional communication card for a Deaf person based on: "${prompt}".
+    Return ONLY a JSON object with "title", "content", and "category".
+    Available categories: ${categories.join(", ")}.
+    Pick the most relevant category. Keep content concise and easy to read on a screen.
+    No markdown, no explanation, just the JSON object.`
+  );
 
-    return JSON.parse(response.text);
-  } catch (error) {
-    console.error("Gemini generation failed:", error);
-    throw error;
+  try {
+    const clean = text.replace(/```json|```/g, "").trim();
+    return JSON.parse(clean);
+  } catch {
+    return { title: "My Message", content: prompt, category: categories[0] };
   }
 }
 
-export async function rewriteMessage(content: string, tone: 'professional' | 'casual') {
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Rewrite the following message for a communication card used by a Deaf person to communicate with hearing people. 
-      The tone should be ${tone}. 
-      Keep it extremely concise (max 15-20 words), polite, and very easy to read on a screen. 
-      Original message: "${content}"`,
-    });
-
-    return response.text?.trim() || content;
-  } catch (error) {
-    console.error("Gemini rewrite failed:", error);
-    throw error;
-  }
+export async function rewriteMessage(content: string, tone: "professional" | "casual") {
+  const text = await callClaude(
+    `Rewrite this message for a Deaf person's communication card. Tone: ${tone}.
+    Keep it under 20 words, polite, and easy to read on screen.
+    Return ONLY the rewritten message, nothing else.
+    Original: "${content}"`
+  );
+  return text.trim() || content;
 }

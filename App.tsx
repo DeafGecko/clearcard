@@ -1,7 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { VisioCard, Category, UserPreferences, SystemCategories } from './types';
 import { storage } from './lib/storage';
+import ClearChat from './components/ClearChat';
+import { MessageCircle } from 'lucide-react';
 import { PlusIcon, LockIcon, SparklesIcon, MedicalIcon, DailyIcon, ServiceIcon, EditIcon, CrossIcon, SettingsIcon, TrashIcon } from './components/Icons';
 import FullscreenViewer from './components/FullscreenViewer';
 import SmartGenerateModal from './components/SmartGenerateModal';
@@ -22,6 +23,7 @@ const App: React.FC = () => {
   const [showCatModal, setShowCatModal] = useState(false);
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showClearChat, setShowClearChat] = useState(false);
   const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
 
   useEffect(() => {
@@ -43,14 +45,14 @@ const App: React.FC = () => {
     setCards(prevCards => {
       let nextCards: VisioCard[];
       if (id) {
-        nextCards = prevCards.map(c => 
-          c.id === id 
-            ? { 
-                ...c, 
-                ...data, 
+        nextCards = prevCards.map(c =>
+          c.id === id
+            ? {
+                ...c,
+                ...data,
                 isSensitive: data.category === SystemCategories.MEDICAL || data.category === SystemCategories.VAULT || data.category === SystemCategories.EMERGENCY,
                 isLocked: data.category === SystemCategories.VAULT
-              } 
+              }
             : c
         );
       } else {
@@ -65,13 +67,9 @@ const App: React.FC = () => {
         };
         nextCards = [newCard, ...prevCards];
       }
-      
-      // Persist to local storage immediately with the fresh calculation
       storage.saveCards(nextCards);
       return nextCards;
     });
-    
-    // Close any open modals and reset editing state
     setShowSmartModal(false);
     setShowEditorModal(false);
     setEditingCard(null);
@@ -91,7 +89,6 @@ const App: React.FC = () => {
   const startEditing = (card: VisioCard, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     triggerHaptic(20);
-    // Dismiss the fullscreen viewer if it's open so the editor modal is visible
     setSelectedCard(null);
     setEditingCard(card);
     setShowEditorModal(true);
@@ -111,28 +108,21 @@ const App: React.FC = () => {
 
   const handleDeleteCategory = (name: string) => {
     if (name === SystemCategories.VAULT || name === SystemCategories.EMERGENCY) return;
-    
     setCategories(prev => {
       const remainingCats = prev.filter(c => c !== name);
-      const reachableCats = remainingCats.filter(c => ! [SystemCategories.VAULT, SystemCategories.EMERGENCY].includes(c as any));
+      const reachableCats = remainingCats.filter(c => ![SystemCategories.VAULT, SystemCategories.EMERGENCY].includes(c as any));
       const fallback = reachableCats.length > 0 ? reachableCats[0] : SystemCategories.DAILY;
-
       setCards(prevCards => {
-        const nextCards = prevCards.map(c => 
+        const nextCards = prevCards.map(c =>
           c.category === name ? { ...c, category: fallback } : c
         );
         storage.saveCards(nextCards);
         return nextCards;
       });
-
       storage.saveCategories(remainingCats);
       return remainingCats;
     });
-    
-    if (activeCategory === name) {
-      setActiveCategory('All');
-    }
-    
+    if (activeCategory === name) setActiveCategory('All');
     triggerHaptic(80);
   };
 
@@ -160,8 +150,9 @@ const App: React.FC = () => {
   };
 
   const filteredCards = cards.filter(c => {
-    if (activeCategory === 'All') return c.category !== SystemCategories.VAULT || isVaultUnlocked;
+    if (activeCategory === 'All') return c.category !== SystemCategories.VAULT && c.category !== SystemCategories.EMERGENCY;
     if (activeCategory === SystemCategories.VAULT) return c.category === SystemCategories.VAULT && isVaultUnlocked;
+    if (activeCategory === SystemCategories.EMERGENCY) return c.category === SystemCategories.EMERGENCY;
     return c.category === activeCategory;
   });
 
@@ -187,17 +178,17 @@ const App: React.FC = () => {
           <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] landscape:hidden">Smart Vis-Com Cards</p>
         </div>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={() => { triggerHaptic(15); setShowSettingsModal(true); }}
             aria-label="Settings"
-            className="h-12 w-12 landscape:h-10 landscape:w-10 rounded-2xl flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
+            className="h-11 w-11 rounded-2xl flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
           >
             <SettingsIcon />
           </button>
-           <button 
+          <button
             onClick={handleLockToggle}
             aria-label={isVaultUnlocked ? "Lock Private Info" : "Unlock Private Info"}
-            className={`h-12 w-12 landscape:h-10 landscape:w-10 rounded-2xl flex items-center justify-center transition-all ${
+            className={`h-11 w-11 rounded-2xl flex items-center justify-center transition-all ${
               isVaultUnlocked ? 'text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'bg-zinc-900 text-zinc-600'
             }`}
             style={isVaultUnlocked ? { backgroundColor: accentColor } : {}}
@@ -211,11 +202,11 @@ const App: React.FC = () => {
         <button
           onClick={() => { triggerHaptic(50); setActiveCategory(SystemCategories.EMERGENCY); }}
           className={`h-11 w-11 landscape:h-9 landscape:w-9 shrink-0 rounded-2xl flex items-center justify-center transition-all text-white shadow-lg ${
-            activeCategory === SystemCategories.EMERGENCY 
-              ? 'scale-110 z-10 ring-2 ring-white/80' 
+            activeCategory === SystemCategories.EMERGENCY
+              ? 'scale-110 z-10 ring-2 ring-white/80'
               : 'opacity-90 hover:opacity-100'
           }`}
-          style={{ 
+          style={{
             backgroundColor: emergencyColor,
             boxShadow: activeCategory === SystemCategories.EMERGENCY ? `0 0 20px rgba(229, 57, 53, 0.7)` : undefined
           }}
@@ -225,10 +216,10 @@ const App: React.FC = () => {
         </button>
 
         <button
-          onClick={() => { triggerHaptic(); setActiveCategory('All'); }}
+          onClick={() => { triggerHaptic(); setActiveCategory('All'); setIsVaultUnlocked(false); }}
           className={`px-6 py-3 landscape:py-2 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border ${
-            activeCategory === 'All' 
-              ? 'text-black' 
+            activeCategory === 'All'
+              ? 'text-black'
               : 'bg-zinc-900 text-zinc-500 border-zinc-800'
           }`}
           style={activeCategory === 'All' ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
@@ -241,17 +232,17 @@ const App: React.FC = () => {
             key={cat}
             onClick={() => { triggerHaptic(); setActiveCategory(cat as any); }}
             className={`px-6 py-3 landscape:py-2 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border ${
-              activeCategory === cat 
-                ? 'text-black' 
+              activeCategory === cat
+                ? 'text-black'
                 : 'bg-zinc-900 text-zinc-500 border-zinc-800'
-          }`}
-          style={activeCategory === cat ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
+            }`}
+            style={activeCategory === cat ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
           >
             {cat}
           </button>
         ))}
-        
-        <button 
+
+        <button
           onClick={() => { triggerHaptic(15); setShowCatModal(true); }}
           className="px-4 py-3 landscape:py-2 bg-zinc-900 rounded-2xl border border-zinc-800 font-black text-xs uppercase tracking-widest active:scale-95 transition-transform"
           style={{ color: accentColor }}
@@ -268,7 +259,7 @@ const App: React.FC = () => {
             </div>
             <h2 className="text-2xl landscape:text-lg font-black mb-3">Vault is Locked</h2>
             <p className="text-zinc-500 mb-10 landscape:mb-6 max-w-xs leading-relaxed font-medium landscape:text-sm">Access your highly sensitive personal information securely.</p>
-            <button 
+            <button
               onClick={() => { triggerHaptic(40); setShowPasscodeModal(true); }}
               className="w-full max-w-sm h-16 landscape:h-12 bg-white text-black rounded-3xl font-black text-lg landscape:text-sm active:scale-95 transition-transform"
             >
@@ -283,19 +274,18 @@ const App: React.FC = () => {
               </div>
             ) : (
               filteredCards.map(card => (
-                <article 
+                <article
                   key={card.id}
                   role="listitem"
                   onClick={() => { triggerHaptic(15); setSelectedCard(card); }}
                   className="group relative bg-zinc-950 border border-zinc-900 px-4 py-5 landscape:py-3 rounded-[28px] cursor-pointer active:bg-zinc-900 transition-all flex items-center gap-4 overflow-hidden"
                   style={{'--accent-color': accentColor} as React.CSSProperties}
                 >
-                  {/* Left Side: Category Icon */}
-                  <div 
+                  <div
                     className={`shrink-0 w-12 h-12 landscape:w-10 landscape:h-10 flex items-center justify-center rounded-2xl ${
                       card.category === SystemCategories.EMERGENCY ? 'text-white' : 'bg-zinc-900 text-zinc-500'
                     }`}
-                    style={card.category === SystemCategories.EMERGENCY ? { 
+                    style={card.category === SystemCategories.EMERGENCY ? {
                       backgroundColor: emergencyColor,
                       boxShadow: '0 4px 12px rgba(229, 57, 53, 0.4)'
                     } : {}}
@@ -303,13 +293,12 @@ const App: React.FC = () => {
                     {getCatIcon(card.category)}
                   </div>
 
-                  {/* Center: Title and Category */}
                   <div className="flex-1 min-w-0 pr-20">
                     <h3 className="text-lg landscape:text-base font-black truncate group-hover:text-[var(--accent-color)] transition-colors">
                       {card.title}
                     </h3>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span 
+                      <span
                         className="text-[9px] font-black uppercase tracking-widest"
                         style={card.category === SystemCategories.EMERGENCY ? { color: emergencyColor } : { color: '#52525b' }}
                       >
@@ -318,17 +307,16 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Right Side: Management Buttons */}
                   <div className="absolute right-2 flex items-center gap-0.5">
-                    <button 
-                      onClick={(e) => startEditing(card, e)} 
+                    <button
+                      onClick={(e) => startEditing(card, e)}
                       className="h-10 w-10 flex items-center justify-center text-zinc-700 hover:text-white active:scale-125 transition-all"
                       aria-label="Edit"
                     >
                       <EditIcon />
                     </button>
-                    <button 
-                      onClick={(e) => deleteCard(card.id, e)} 
+                    <button
+                      onClick={(e) => deleteCard(card.id, e)}
                       className="h-10 w-10 flex items-center justify-center text-zinc-700 hover:text-red-500 active:scale-125 transition-all"
                       aria-label="Delete"
                     >
@@ -339,7 +327,7 @@ const App: React.FC = () => {
               ))
             )}
 
-            <button 
+            <button
               onClick={() => { triggerHaptic(10); setEditingCard(null); setShowEditorModal(true); }}
               className="flex items-center justify-center gap-4 border-2 border-dashed border-zinc-900 rounded-[28px] py-6 landscape:py-3 px-8 text-zinc-700 transition-all group mt-2"
               style={{'--accent-color': accentColor} as any}
@@ -351,19 +339,37 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <div className="fixed bottom-10 landscape:bottom-4 left-6 right-6 flex items-center gap-3">
-        <button 
+      {/* Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 bg-black/95 backdrop-blur-xl border-t border-zinc-900 px-8 pb-8 pt-4 flex items-center justify-between">
+        <button
+          onClick={() => { triggerHaptic(30); setShowClearChat(true); }}
+          className="w-11 h-11 rounded-2xl bg-zinc-800 text-white flex items-center justify-center active:scale-95 transition-all border border-zinc-700"
+          aria-label="ClearChat"
+        >
+          <MessageCircle size={20} />
+        </button>
+
+        <button
+          onClick={() => { triggerHaptic(10); setEditingCard(null); setShowEditorModal(true); }}
+          className="w-14 h-14 rounded-2xl text-black flex items-center justify-center active:scale-95 transition-all shadow-lg"
+          style={{ backgroundColor: accentColor, boxShadow: `0 8px 24px ${accentColor}50` }}
+          aria-label="New Card"
+        >
+          <PlusIcon />
+        </button>
+
+        <button
           onClick={() => { triggerHaptic(30); setShowSmartModal(true); }}
-          className="flex-1 text-black h-20 landscape:h-14 rounded-[32px] landscape:rounded-2xl font-black text-xl landscape:text-base shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3"
-          style={{ backgroundColor: accentColor, boxShadow: `0 15px 40px ${accentColor}40` }}
+          className="w-11 h-11 rounded-2xl bg-zinc-800 text-white flex items-center justify-center active:scale-95 transition-all border border-zinc-700"
+          aria-label="Smart Generate"
         >
           <SparklesIcon />
-          <span>SMART GENERATE</span>
         </button>
       </div>
 
       {selectedCard && <FullscreenViewer card={selectedCard} onClose={() => setSelectedCard(null)} onEdit={(card) => startEditing(card)} initialFontSize={prefs.fontSize} accentColor={accentColor} displayTextColor={prefs.displayTextColor} />}
       {showSmartModal && <SmartGenerateModal categories={categories} onClose={() => setShowSmartModal(false)} onGenerated={handleSaveCard} accentColor={accentColor} />}
+      {showClearChat && <ClearChat onClose={() => setShowClearChat(false)} accentColor={accentColor} />}
       {showEditorModal && <CardEditorModal categories={categories} onClose={() => { setShowEditorModal(false); setEditingCard(null); }} onSave={(data) => handleSaveCard(data, editingCard?.id)} initialData={editingCard || undefined} accentColor={accentColor} />}
       {showCatModal && <CategoryManagerModal categories={categories} onAdd={handleAddCategory} onDelete={handleDeleteCategory} onReorder={handleReorderCategories} onClose={() => setShowCatModal(false)} accentColor={accentColor} />}
       {showPasscodeModal && <PasscodeModal onVerify={handlePasscodeVerify} onClose={() => setShowPasscodeModal(false)} accentColor={accentColor} />}

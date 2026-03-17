@@ -145,7 +145,7 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
         <button
           type="submit"
           disabled={!title || !content || isRewriting}
-          className="w-full h-20 text-black rounded-[32px] font-black text-xl active:scale-95 transition-transform disabled:opacity-50 shadow-xl"
+          className="w-full h-14 text-black rounded-2xl font-black text-base active:scale-95 transition-transform disabled:opacity-50 shadow-xl"
           style={{ backgroundColor: accentColor, boxShadow: `0 10px 30px ${accentColor}33` }}
         >
           {isRewriting ? 'REWRITING...' : 'SAVE CARD'}
