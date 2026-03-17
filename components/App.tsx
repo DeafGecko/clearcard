@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { VisioCard, Category, UserPreferences, SystemCategories } from './types';
+import { VisioCard, Category, UserPreferences, SystemCategories } from '../types';
 import { storage } from './lib/storage';
 import ClearChat from './components/ClearChat';
-import { MessageCircle, Settings, FileKey } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { PlusIcon, LockIcon, SparklesIcon, MedicalIcon, DailyIcon, ServiceIcon, EditIcon, CrossIcon, SettingsIcon, TrashIcon } from './components/Icons';
 import FullscreenViewer from './components/FullscreenViewer';
 import SmartGenerateModal from './components/SmartGenerateModal';
@@ -59,11 +59,11 @@ const App: React.FC = () => {
         nextCards = prevCards.map(c =>
           c.id === id
             ? {
-              ...c,
-              ...data,
-              isSensitive: data.category === SystemCategories.MEDICAL || data.category === SystemCategories.VAULT,
-              isLocked: data.category === SystemCategories.VAULT
-            }
+                ...c,
+                ...data,
+                isSensitive: data.category === SystemCategories.MEDICAL || data.category === SystemCategories.VAULT,
+                isLocked: data.category === SystemCategories.VAULT
+              }
             : c
         );
       } else {
@@ -183,54 +183,67 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white pb-40 landscape:pb-24 select-none">
+      {/* ── Header ── landmark: banner */}
       <header className="sticky top-0 z-30 bg-black/95 backdrop-blur-xl border-b border-zinc-900 px-6 pt-12 landscape:pt-4 pb-6 landscape:pb-2 flex justify-between items-end">
         <div>
           <h1 className="text-4xl landscape:text-2xl font-black tracking-tighter leading-none mb-1 uppercase">ClearCard</h1>
           <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] landscape:hidden">Smart Vis-Com Cards</p>
         </div>
-        <div className="flex gap-2">
+
+        {/* Group header actions so assistive tech can navigate them as a unit */}
+        <div role="group" aria-label="Header actions" className="flex gap-2">
           <button
             onClick={() => { triggerHaptic(15); setShowSettingsModal(true); }}
-            aria-label="Settings"
+            aria-label="Open settings"
             className="h-11 w-11 rounded-2xl flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
           >
-            <Settings size={20} />
+            <SettingsIcon />
           </button>
           <button
             onClick={handleLockToggle}
-            aria-label={isVaultUnlocked ? "Lock Private Info" : "Unlock Private Info"}
-            className={`h-11 w-11 rounded-2xl flex items-center justify-center transition-all ${isVaultUnlocked ? 'text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'bg-zinc-900 text-zinc-600'
-              }`}
+            aria-label={isVaultUnlocked ? "Lock vault" : "Unlock vault"}
+            aria-pressed={isVaultUnlocked}
+            className={`h-11 w-11 rounded-2xl flex items-center justify-center transition-all ${
+              isVaultUnlocked ? 'text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'bg-zinc-900 text-zinc-600'
+            }`}
             style={isVaultUnlocked ? { backgroundColor: accentColor } : {}}
           >
-            <FileKey size={20} />
+            <LockIcon />
           </button>
         </div>
       </header>
 
-      <nav className="sticky top-27 landscape:top-16
-      z-30 bg-black/95 backdrop-blur-xl py-4 landscape:py-2 overflow-x-auto whitespace-nowrap px-6 no-scrollbar flex items-center gap-2">
+      {/* ── Category filter ── landmark: navigation */}
+      <nav
+        aria-label="Filter cards by category"
+        className="sticky top-108 landscape:top-27 z-30 bg-black/95 backdrop-blur-xl py-4 landscape:py-2 overflow-x-auto whitespace-nowrap px-6 no-scrollbar flex items-center gap-2"
+      >
+        {/* Emergency is always visible but sits outside the main filter set */}
         <button
           onClick={() => { triggerHaptic(50); setActiveCategory(SystemCategories.EMERGENCY); }}
-          className={`h-11 w-11 landscape:h-9 landscape:w-9 shrink-0 rounded-2xl flex items-center justify-center transition-all text-white shadow-lg ${activeCategory === SystemCategories.EMERGENCY
-            ? 'scale-110 z-10 ring-2 ring-white/80'
-            : 'opacity-90 hover:opacity-100'
-            }`}
+          aria-label="Emergency category"
+          aria-current={activeCategory === SystemCategories.EMERGENCY ? 'true' : undefined}
+          className={`h-11 w-11 landscape:h-9 landscape:w-9 shrink-0 rounded-2xl flex items-center justify-center transition-all text-white shadow-lg ${
+            activeCategory === SystemCategories.EMERGENCY
+              ? 'scale-110 z-10 ring-2 ring-white/80'
+              : 'opacity-90 hover:opacity-100'
+          }`}
           style={{
             backgroundColor: emergencyColor,
             boxShadow: activeCategory === SystemCategories.EMERGENCY ? `0 0 20px rgba(229, 57, 53, 0.7)` : undefined
           }}
-          aria-label="Emergency"
         >
           <CrossIcon />
         </button>
 
         <button
           onClick={() => { triggerHaptic(); setActiveCategory('All'); setIsVaultUnlocked(false); }}
-          className={`px-6 py-3 landscape:py-2 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border ${activeCategory === 'All'
-            ? 'text-black'
-            : 'bg-zinc-900 text-zinc-500 border-zinc-800'
-            }`}
+          aria-current={activeCategory === 'All' ? 'true' : undefined}
+          className={`px-6 py-3 landscape:py-2 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border ${
+            activeCategory === 'All'
+              ? 'text-black'
+              : 'bg-zinc-900 text-zinc-500 border-zinc-800'
+          }`}
           style={activeCategory === 'All' ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
         >
           All
@@ -240,10 +253,12 @@ const App: React.FC = () => {
           <button
             key={cat}
             onClick={() => { triggerHaptic(); setActiveCategory(cat as any); }}
-            className={`px-6 py-3 landscape:py-2 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border ${activeCategory === cat
-              ? 'text-black'
-              : 'bg-zinc-900 text-zinc-500 border-zinc-800'
-              }`}
+            aria-current={activeCategory === cat ? 'true' : undefined}
+            className={`px-6 py-3 landscape:py-2 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border ${
+              activeCategory === cat
+                ? 'text-black'
+                : 'bg-zinc-900 text-zinc-500 border-zinc-800'
+            }`}
             style={activeCategory === cat ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
           >
             {cat}
@@ -252,6 +267,7 @@ const App: React.FC = () => {
 
         <button
           onClick={() => { triggerHaptic(15); setShowCatModal(true); }}
+          aria-label="Manage categories"
           className="px-4 py-3 landscape:py-2 bg-zinc-900 rounded-2xl border border-zinc-800 font-black text-xs uppercase tracking-widest active:scale-95 transition-transform"
           style={{ color: accentColor }}
         >
@@ -259,111 +275,139 @@ const App: React.FC = () => {
         </button>
       </nav>
 
+      {/* ── Main content ── landmark: main */}
       <main className="px-6 mt-6 landscape:mt-2">
         {activeCategory === SystemCategories.VAULT && !isVaultUnlocked ? (
-          <div className="flex flex-col items-center justify-center py-20 landscape:py-8 text-center animate-in fade-in zoom-in duration-500">
-            <div className="w-24 h-24 landscape:w-16 landscape:h-16 bg-zinc-900 rounded-[40px] flex items-center justify-center mb-8 landscape:mb-4 text-zinc-600">
-              <FileKey size={20} />
+          /* Vault locked — not a list; treat as a descriptive section */
+          <section aria-labelledby="vault-heading" className="flex flex-col items-center justify-center py-20 landscape:py-8 text-center animate-in fade-in zoom-in duration-500">
+            <div
+              aria-hidden="true"
+              className="w-24 h-24 landscape:w-16 landscape:h-16 bg-zinc-900 rounded-[40px] flex items-center justify-center mb-8 landscape:mb-4 text-zinc-600"
+            >
+              <LockIcon />
             </div>
-            <h2 className="text-2xl landscape:text-lg font-black mb-3">Vault is Locked</h2>A
-            <p className="text-zinc-500 mb-10 landscape:mb-6 max-w-xs leading-relaxed font-medium landscape:text-sm">Access your highly sensitive personal information securely.</p>
+            <h2 id="vault-heading" className="text-2xl landscape:text-lg font-black mb-3">Vault is Locked</h2>
+            <p className="text-zinc-500 mb-10 landscape:mb-6 max-w-xs leading-relaxed font-medium landscape:text-sm">
+              Access your highly sensitive personal information securely.
+            </p>
             <button
               onClick={() => { triggerHaptic(40); setShowPasscodeModal(true); }}
               className="w-full max-w-sm h-16 landscape:h-12 bg-white text-black rounded-3xl font-black text-lg landscape:text-sm active:scale-95 transition-transform"
             >
               UNLOCK VAULT
             </button>
-          </div>
+          </section>
         ) : (
-          <div className="grid grid-cols-1 gap-3 landscape:grid-cols-2">
+          /* Cards list — role="list" lives on the scrollable grid, not on <main> */
+          <ul
+            role="list"
+            aria-label={`Cards in ${activeCategory}`}
+            aria-live="polite"
+            aria-atomic="false"
+            className="grid grid-cols-1 gap-3 landscape:grid-cols-2 list-none p-0 m-0"
+          >
             {filteredCards.length === 0 ? (
-              <div className="py-20 text-center text-zinc-600 font-bold uppercase tracking-widest text-xs col-span-full">
+              <li role="listitem" className="py-20 text-center text-zinc-600 font-bold uppercase tracking-widest text-xs col-span-full">
                 No cards in {activeCategory}
-              </div>
+              </li>
             ) : (
               filteredCards.map(card => (
-                <article
-                  key={card.id}
-                  role="listitem"
-                  onClick={() => { triggerHaptic(15); setSelectedCard(card); }}
-                  className="group relative bg-zinc-950 border border-zinc-900 px-4 py-5 landscape:py-3 rounded-[28px] cursor-pointer active:bg-zinc-900 transition-all flex items-center gap-4 overflow-hidden"
-                  style={{ '--accent-color': accentColor } as React.CSSProperties}
-                >
-                  <div
-                    className={`shrink-0 w-12 h-12 landscape:w-10 landscape:h-10 flex items-center justify-center rounded-2xl ${card.category === SystemCategories.EMERGENCY ? 'text-white' : 'bg-zinc-900 text-zinc-500'
-                      }`}
-                    style={card.category === SystemCategories.EMERGENCY ? {
-                      backgroundColor: emergencyColor,
-                      boxShadow: '0 4px 12px rgba(229, 57, 53, 0.4)'
-                    } : {}}
+                /* <article> is correct for self-contained card content; role="listitem" is implicit inside <ul> but kept for explicitness */
+                <li key={card.id} role="listitem">
+                  <article
+                    onClick={() => { triggerHaptic(15); setSelectedCard(card); }}
+                    aria-label={`${card.title} — ${card.category}`}
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerHaptic(15); setSelectedCard(card); } }}
+                    className="group relative bg-zinc-950 border border-zinc-900 px-4 py-5 landscape:py-3 rounded-[28px] cursor-pointer active:bg-zinc-900 transition-all flex items-center gap-4 overflow-hidden"
+                    style={{'--accent-color': accentColor} as React.CSSProperties}
                   >
-                    {getCatIcon(card.category)}
-                  </div>
-
-                  <div className="flex-1 min-w-0 pr-20">
-                    <h3 className="text-lg landscape:text-base font-black truncate group-hover:text-(--accent-color) transition-colors">
-                      {card.title}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span
-                        className="text-[9px] font-black uppercase tracking-widest"
-                        style={card.category === SystemCategories.EMERGENCY ? { color: emergencyColor } : { color: '#52525b' }}
-                      >
-                        {card.category}
-                      </span>
+                    {/* Category icon — decorative, hidden from AT */}
+                    <div
+                      aria-hidden="true"
+                      className={`shrink-0 w-12 h-12 landscape:w-10 landscape:h-10 flex items-center justify-center rounded-2xl ${
+                        card.category === SystemCategories.EMERGENCY ? 'text-white' : 'bg-zinc-900 text-zinc-500'
+                      }`}
+                      style={card.category === SystemCategories.EMERGENCY ? {
+                        backgroundColor: emergencyColor,
+                        boxShadow: '0 4px 12px rgba(229, 57, 53, 0.4)'
+                      } : {}}
+                    >
+                      {getCatIcon(card.category)}
                     </div>
-                  </div>
 
-                  <div className="absolute right-2 flex items-center gap-0.5">
-                    <button
-                      onClick={(e) => startEditing(card, e)}
-                      className="h-10 w-10 flex items-center justify-center text-zinc-700 hover:text-white active:scale-125 transition-all"
-                      aria-label="Edit"
-                    >
-                      <EditIcon />
-                    </button>
-                    <button
-                      onClick={(e) => deleteCard(card.id, e)}
-                      className="h-10 w-10 flex items-center justify-center text-zinc-700 hover:text-red-500 active:scale-125 transition-all"
-                      aria-label="Delete"
-                    >
-                      <TrashIcon />
-                    </button>
-                  </div>
-                </article>
+                    <div className="flex-1 min-w-0 pr-20">
+                      <h3 className="text-lg landscape:text-base font-black truncate group-hover:text-(--accent-color) transition-colors">
+                        {card.title}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {/* Visible category label — aria-hidden because the article's aria-label already announces it */}
+                        <span
+                          aria-hidden="true"
+                          className="text-[9px] font-black uppercase tracking-widest"
+                          style={card.category === SystemCategories.EMERGENCY ? { color: emergencyColor } : { color: '#52525b' }}
+                        >
+                          {card.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Card actions — grouped so AT can skip over them */}
+                    <div role="group" aria-label={`Actions for ${card.title}`} className="absolute right-2 flex items-center gap-0.5">
+                      <button
+                        onClick={(e) => startEditing(card, e)}
+                        aria-label={`Edit ${card.title}`}
+                        className="h-10 w-10 flex items-center justify-center text-zinc-700 hover:text-white active:scale-125 transition-all"
+                      >
+                        <EditIcon />
+                      </button>
+                      <button
+                        onClick={(e) => deleteCard(card.id, e)}
+                        aria-label={`Delete ${card.title}`}
+                        className="h-10 w-10 flex items-center justify-center text-zinc-700 hover:text-red-500 active:scale-125 transition-all"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  </article>
+                </li>
               ))
             )}
-          </div>
+          </ul>
         )}
       </main>
 
-      {/* Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 bg-black/95 backdrop-blur-xl border-t border-zinc-900 px-8 pb-8 pt-4 flex items-center justify-between">
+      {/* ── Bottom action bar ── landmark: contentinfo / toolbar */}
+      <footer
+        role="toolbar"
+        aria-label="Card actions"
+        className="fixed bottom-0 left-0 right-0 z-20 bg-black/95 backdrop-blur-xl border-t border-zinc-900 pl-13 pr-13 pb-8 pt-4 flex items-center justify-between"
+      >
         <button
           onClick={() => { triggerHaptic(30); setShowClearChat(true); }}
+          aria-label="Open ClearChat assistant"
           className="w-11 h-11 rounded-2xl bg-zinc-800 text-white flex items-center justify-center active:scale-95 transition-all border border-zinc-700"
-          aria-label="ClearChat"
         >
           <MessageCircle size={20} />
         </button>
 
         <button
           onClick={() => { triggerHaptic(10); setEditingCard(null); setShowEditorModal(true); }}
+          aria-label="Create new card"
           className="w-14 h-14 rounded-2xl text-black flex items-center justify-center active:scale-95 transition-all shadow-lg"
           style={{ backgroundColor: accentColor, boxShadow: `0 8px 24px ${accentColor}50` }}
-          aria-label="New Card"
         >
           <PlusIcon />
         </button>
 
         <button
           onClick={() => { triggerHaptic(30); setShowSmartModal(true); }}
+          aria-label="Smart generate card"
           className="w-11 h-11 rounded-2xl bg-zinc-800 text-white flex items-center justify-center active:scale-95 transition-all border border-zinc-700"
-          aria-label="Smart Generate"
         >
           <SparklesIcon />
         </button>
-      </div>
+      </footer>
 
       {selectedCard && <FullscreenViewer card={selectedCard} onClose={() => setSelectedCard(null)} onEdit={(card) => startEditing(card)} initialFontSize={prefs.fontSize} accentColor={accentColor} displayTextColor={prefs.displayTextColor} />}
       {showSmartModal && <SmartGenerateModal categories={categories} onClose={() => setShowSmartModal(false)} onGenerated={handleSaveCard} accentColor={accentColor} />}

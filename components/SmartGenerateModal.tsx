@@ -30,7 +30,7 @@ const SmartGenerateModal: React.FC<SmartGenerateModalProps> = ({ categories, onG
   // Generate tab state
   const [prompt, setPrompt] = useState('');
   const [language, setLanguage] = useState<'english' | 'spanish'>('english');
-  const [tone, setTone] = useState<'professional' | 'casual'>('professional');
+  const [tone, setTone] = useState<'professional' | 'casual'>('casual');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ title: string; content: string; category: Category } | null>(null);
   const [copied, setCopied] = useState(false);
@@ -112,7 +112,7 @@ const SmartGenerateModal: React.FC<SmartGenerateModalProps> = ({ categories, onG
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold" style={{ color: accentColor }}>
             <SparklesIcon />
-            <span>Smart Generate</span>
+            <span>Grammar Correct</span>
           </div>
           <div className="flex items-center gap-2">
             {tab === 'generate' && (['english', 'spanish'] as const).map(lang => (
@@ -122,7 +122,7 @@ const SmartGenerateModal: React.FC<SmartGenerateModalProps> = ({ categories, onG
                 className={`py-1.5 px-3 rounded-xl font-black text-[10px] uppercase tracking-widest border transition-all ${language === lang ? 'text-black border-transparent' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}
                 style={language === lang ? { backgroundColor: accentColor } : {}}
               >
-                {lang === 'english' ? '🇺🇸 English' : '🇲🇽 Spanish'}
+                {lang === 'english' ? 'English' : 'Spanish'}
               </button>
             ))}
             <button onClick={onClose} className="w-8 h-8 flex items-center justify-center bg-zinc-800 rounded-xl text-zinc-400 font-black text-sm">✕</button>
@@ -163,25 +163,25 @@ const SmartGenerateModal: React.FC<SmartGenerateModalProps> = ({ categories, onG
 
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => setTone('professional')}
-                className={`py-3 rounded-2xl font-black text-xs uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${tone === 'professional' ? 'text-black border-transparent' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}
-                style={tone === 'professional' ? { backgroundColor: accentColor } : {}}
-              >
-                <Briefcase size={14} /> Professional
-              </button>
-              <button
                 onClick={() => setTone('casual')}
                 className={`py-3 rounded-2xl font-black text-xs uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${tone === 'casual' ? 'text-black border-transparent' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}
                 style={tone === 'casual' ? { backgroundColor: accentColor } : {}}
               >
                 <Smile size={14} /> Casual
               </button>
+              <button
+                onClick={() => setTone('professional')}
+                className={`py-3 rounded-2xl font-black text-xs uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${tone === 'professional' ? 'text-black border-transparent' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}
+                style={tone === 'professional' ? { backgroundColor: accentColor } : {}}
+              >
+                <Briefcase size={14} /> Professional
+              </button>
             </div>
 
             <button
               onClick={handleGenerate}
               disabled={loading || !prompt.trim()}
-              className="w-full py-4 text-black rounded-2xl font-black hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full h-11 text-black rounded-2xl font-black hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
               style={{ backgroundColor: accentColor }}
             >
               {loading ? <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" /> : <><SparklesIcon /> Generate</>}
@@ -251,7 +251,7 @@ const SmartGenerateModal: React.FC<SmartGenerateModalProps> = ({ categories, onG
             <button
               onClick={handleGrammarFix}
               disabled={grammarLoading || !grammarText.trim()}
-              className="w-full py-4 text-black rounded-2xl font-black disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full h-11 text-black rounded-2xl font-black disabled:opacity-50 flex items-center justify-center gap-2"
               style={{ backgroundColor: accentColor }}
             >
               {grammarLoading ? <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" /> : <><PenLine size={16} /> Fix Grammar</>}
