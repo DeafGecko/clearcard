@@ -149,9 +149,6 @@ ClearCard stores all data **locally on the user's device** using `localStorage`.
 
 - [ ] Add language support (Spanish, French, Chinese, and more)
 - [ ] AI-powered grammar correction via Anthropic API
-- [ ] PWA support (install to home screen)
-- [ ] Export/import cards as backup
-- [ ] QR code sharing for individual cards
 
 ---
 
