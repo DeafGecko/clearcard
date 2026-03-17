@@ -5,7 +5,7 @@ import { MessageCircle } from 'lucide-react';
 interface Message {
   id: string;
   text: string;
-  sender: 'me' | 'them';
+  sender: 'deaf' | 'hearing';
   timestamp: number;
 }
 
@@ -38,7 +38,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
   });
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [input, setInput] = useState('');
-  const [activeSender, setActiveSender] = useState<'me' | 'them'>('me');
+  const [activeSender, setActiveSender] = useState<'deaf' | 'hearing'>('deaf');
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -61,16 +61,17 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
 
   const createConversation = () => {
     const now = Date.now();
+    const chatNum = conversations.length + 1;
     const conv: Conversation = {
       id: Math.random().toString(36).substr(2, 9),
-      name: `Conversation ${conversations.length + 1}`,
+      name: `Chat ${chatNum}`,
       messages: [],
       createdAt: now,
       updatedAt: now,
     };
     setConversations(prev => [conv, ...prev]);
     setActiveConvId(conv.id);
-    setActiveSender('me');
+    setActiveSender('deaf');
   };
 
   const deleteConversation = (id: string, e: React.MouseEvent) => {
@@ -93,7 +94,9 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
         : c
     ));
     setInput('');
-    textareaRef.current?.focus();
+    // Auto-shift to the other sender after sending
+    setActiveSender(prev => prev === 'deaf' ? 'hearing' : 'deaf');
+    setTimeout(() => textareaRef.current?.focus(), 100);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -154,7 +157,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
             conversations.map(conv => (
               <div
                 key={conv.id}
-                onClick={() => { setActiveConvId(conv.id); setActiveSender('me'); }}
+                onClick={() => { setActiveConvId(conv.id); setActiveSender('deaf'); }}
                 className="bg-zinc-950 border border-zinc-900 rounded-[24px] px-5 py-4 flex items-center gap-4 cursor-pointer active:bg-zinc-900 transition-all"
               >
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: accentColor }}>
@@ -183,7 +186,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
             className="w-full h-14 rounded-2xl font-black text-sm text-black active:scale-95 transition-all"
             style={{ backgroundColor: accentColor }}
           >
-            + NEW CONVERSATION
+            + NEW CHAT
           </button>
         </div>
       </div>
@@ -225,18 +228,22 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
         </button>
       </div>
 
-      {/* Sender Toggle */}
+      {/* Sender Toggle — auto shifts but user can override */}
       <div className="flex items-center gap-2 px-6 py-3 border-b border-zinc-900">
-        <span className="text-zinc-600 text-[9px] font-black uppercase tracking-widest mr-1">Typing as:</span>
+<button
+          onClick={() => setActiveSender('deaf')}
+          className={`flex-1 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all border ${activeSender === 'deaf' ? 'text-black border-transparent font-black' : 'bg-zinc-900 text-zinc-500 border-zinc-800'}`}
+          style={activeSender === 'deaf' ? { backgroundColor: accentColor } : {}}
+        >
+          Deaf
+        </button>
         <button
-          onClick={() => setActiveSender('me')}
-          className={`flex-1 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all border ${activeSender === 'me' ? 'text-black border-transparent' : 'bg-zinc-900 text-zinc-500 border-zinc-800'}`}
-          style={activeSender === 'me' ? { backgroundColor: accentColor } : {}}
-        >Me</button>
-        <button
-          onClick={() => setActiveSender('them')}
-          className={`flex-1 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all border ${activeSender === 'them' ? 'bg-white text-black border-white' : 'bg-zinc-900 text-zinc-500 border-zinc-800'}`}
-        >Them</button>
+          onClick={() => setActiveSender('hearing')}
+          className={`flex-1 py-2 rounded-xl font-black text-xs uppercase tracking-widest transition-all border ${activeSender === 'hearing' ? 'text-black border-transparent font-black' : 'bg-zinc-900 text-zinc-500 border-zinc-800'}`}
+          style={activeSender === 'hearing' ? { backgroundColor: accentColor } : {}}
+        >
+          Hearing
+        </button>
       </div>
 
       {/* Messages */}
@@ -250,12 +257,14 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
           </div>
         )}
         {activeConv?.messages.map(msg => (
-          <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
+          <div key={msg.id} className={`flex flex-col gap-1 ${msg.sender === 'deaf' ? 'items-end' : 'items-start'}`}>
+            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-600 px-2">
+              {msg.sender === 'deaf' ? 'Deaf' : 'Hearing'}
+            </span>
             <div
               className={`max-w-[78%] px-5 py-3 rounded-3xl text-base font-bold leading-snug break-words ${
-                msg.sender === 'me' ? 'text-black rounded-br-lg' : 'bg-zinc-800 text-white rounded-bl-lg'
+                msg.sender === 'deaf' ? 'bg-white text-black rounded-br-lg' : 'bg-zinc-800 text-white rounded-bl-lg'
               }`}
-              style={msg.sender === 'me' ? { backgroundColor: accentColor } : {}}
             >
               {msg.text}
             </div>
@@ -271,7 +280,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={activeSender === 'me' ? 'Type your message...' : 'They type here...'}
+          placeholder={activeSender === 'deaf' ? 'Deaf type...' : 'Hearing type...'}
           rows={1}
           className="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3 text-white font-bold text-base outline-none resize-none max-h-32 leading-snug"
           style={{ minHeight: '48px' }}

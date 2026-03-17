@@ -53,7 +53,7 @@ const SmartGenerateModal: React.FC<SmartGenerateModalProps> = ({ categories, onG
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold" style={{ color: accentColor }}>
             <SparklesIcon />
-            <span>Smart Generate</span>
+            <span>Grammar Check</span>
           </div>
           <div className="flex items-center gap-2">
             {(['english', 'spanish'] as const).map(lang => (
@@ -63,7 +63,7 @@ const SmartGenerateModal: React.FC<SmartGenerateModalProps> = ({ categories, onG
                 className={`py-1.5 px-3 rounded-xl font-black text-[10px] uppercase tracking-widest border transition-all ${language === lang ? 'text-black border-transparent' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}
                 style={language === lang ? { backgroundColor: accentColor } : {}}
               >
-                {lang === 'english' ? '🇺🇸 EN' : '🇲🇽 ES'}
+                {lang === 'english' ? 'English' : 'Español'}
               </button>
             ))}
             <button onClick={onClose} className="w-8 h-8 flex items-center justify-center bg-zinc-800 rounded-xl text-zinc-400 font-black text-sm">✕</button>

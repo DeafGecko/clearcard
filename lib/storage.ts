@@ -53,6 +53,7 @@ const DEFAULT_PREFS: UserPreferences = {
   accentColor: '#FACC15', // Tailwind yellow-400
   displayTextColor: '#FFFFFF', // Default set to white
   passcode: '123456',
+  appLanguage: 'en',
   theme: 'dark'
 };
 

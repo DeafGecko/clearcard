@@ -31,6 +31,17 @@ const App: React.FC = () => {
     setCategories(storage.getCategories());
   }, []);
 
+  useEffect(() => {
+    const lang = prefs.appLanguage || 'en';
+    document.documentElement.lang = lang;
+    const meta = document.querySelector('meta[name="google"]');
+    if (lang === 'en') {
+      document.documentElement.removeAttribute('translate');
+    } else {
+      document.documentElement.setAttribute('translate', 'yes');
+    }
+  }, [prefs.appLanguage]);
+
   const triggerHaptic = (ms: number = 10) => {
     if ('vibrate' in navigator) navigator.vibrate(ms);
   };
