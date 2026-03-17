@@ -50,7 +50,7 @@ const App: React.FC = () => {
             ? {
                 ...c,
                 ...data,
-                isSensitive: data.category === SystemCategories.MEDICAL || data.category === SystemCategories.VAULT || data.category === SystemCategories.EMERGENCY,
+                isSensitive: data.category === SystemCategories.MEDICAL || data.category === SystemCategories.VAULT,
                 isLocked: data.category === SystemCategories.VAULT
               }
             : c
@@ -61,7 +61,7 @@ const App: React.FC = () => {
           title: data.title,
           content: data.content,
           category: data.category,
-          isSensitive: data.category === SystemCategories.MEDICAL || data.category === SystemCategories.VAULT || data.category === SystemCategories.EMERGENCY,
+          isSensitive: data.category === SystemCategories.MEDICAL || data.category === SystemCategories.VAULT,
           isLocked: data.category === SystemCategories.VAULT,
           createdAt: Date.now(),
         };
@@ -326,15 +326,6 @@ const App: React.FC = () => {
                 </article>
               ))
             )}
-
-            <button
-              onClick={() => { triggerHaptic(10); setEditingCard(null); setShowEditorModal(true); }}
-              className="flex items-center justify-center gap-4 border-2 border-dashed border-zinc-900 rounded-[28px] py-6 landscape:py-3 px-8 text-zinc-700 transition-all group mt-2"
-              style={{'--accent-color': accentColor} as any}
-            >
-              <PlusIcon />
-              <span className="font-black text-xs uppercase tracking-[0.2em] group-hover:text-[var(--accent-color)]">New Card</span>
-            </button>
           </div>
         )}
       </main>
@@ -370,7 +361,7 @@ const App: React.FC = () => {
       {selectedCard && <FullscreenViewer card={selectedCard} onClose={() => setSelectedCard(null)} onEdit={(card) => startEditing(card)} initialFontSize={prefs.fontSize} accentColor={accentColor} displayTextColor={prefs.displayTextColor} />}
       {showSmartModal && <SmartGenerateModal categories={categories} onClose={() => setShowSmartModal(false)} onGenerated={handleSaveCard} accentColor={accentColor} />}
       {showClearChat && <ClearChat onClose={() => setShowClearChat(false)} accentColor={accentColor} />}
-      {showEditorModal && <CardEditorModal categories={categories} onClose={() => { setShowEditorModal(false); setEditingCard(null); }} onSave={(data) => handleSaveCard(data, editingCard?.id)} initialData={editingCard || undefined} accentColor={accentColor} />}
+      {showEditorModal && <CardEditorModal categories={categories} onClose={() => { setShowEditorModal(false); setEditingCard(null); }} onSave={(data) => handleSaveCard(data, editingCard?.id)} initialData={editingCard || undefined} accentColor={accentColor} passcode={prefs.passcode} />}
       {showCatModal && <CategoryManagerModal categories={categories} onAdd={handleAddCategory} onDelete={handleDeleteCategory} onReorder={handleReorderCategories} onClose={() => setShowCatModal(false)} accentColor={accentColor} />}
       {showPasscodeModal && <PasscodeModal onVerify={handlePasscodeVerify} onClose={() => setShowPasscodeModal(false)} accentColor={accentColor} />}
       {showSettingsModal && <SettingsModal prefs={prefs} onSave={handleUpdatePrefs} onClose={() => setShowSettingsModal(false)} />}
