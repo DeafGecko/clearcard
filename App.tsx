@@ -275,7 +275,7 @@ const App: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 landscape:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 landscape:grid-cols-2" role="list">
             {filteredCards.length === 0 ? (
               <div className="py-20 text-center text-zinc-600 font-bold uppercase tracking-widest text-xs col-span-full">
                 No cards in {activeCategory}

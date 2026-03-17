@@ -41,13 +41,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
 
   const isCustomColor = !MODERN_COLORS.some(c => c.value === accent);
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4 overflow-hidden">
-      <div className="bg-zinc-900 w-full max-w-[320px] rounded-[32px] border border-zinc-800 shadow-2xl flex flex-col p-6 animate-in zoom-in-95 fade-in duration-200 overflow-y-auto max-h-[90vh] no-scrollbar" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-110 flex items-center justify-center p-4 overflow-hidden">
+      <div className="bg-zinc-900 w-full max-w-[320px] rounded-4x1 border border-zinc-800 shadow-2xl flex flex-col p-6 animate-in zoom-in-95 fade-in duration-200 overflow-y-auto max-h-[90vh] no-scrollbar" role="dialog" aria-modal="true">
 
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl font-black">Settings</h2>
-          <button onClick={onClose} className="p-2 bg-zinc-800 rounded-xl active:scale-90 transition-transform text-zinc-400">
-            <ArrowLeftIcon />
+          <button onClick={onClose} aria-label="Close Settings" className="p-2 bg-zinc-800 rounded-xl active:scale-90 transition-transform text-zinc-400">
+            <ArrowLeftIcon aria-hidden="true" />
           </button>
         </div>
 
@@ -59,7 +59,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
             <div className="flex flex-wrap gap-2.5 items-center">
               {MODERN_COLORS.map((color) => (
                 <button
-                  key={color.value}
+                  key={color.value}Button
                   onClick={() => setAccent(color.value)}
                   className={`w-8 h-8 rounded-full transition-all duration-200 flex items-center justify-center ${accent === color.value ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-900" : "opacity-50 hover:opacity-100 scale-90"}`}
                   style={{ backgroundColor: color.value }}
@@ -68,9 +68,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                 </button>
               ))}
               <div className="relative">
-                <input type="color" ref={colorInputRef} className="absolute inset-0 opacity-0 pointer-events-none" onChange={(e) => setAccent(e.target.value)} />
+                <label htmlFor="custom-color-picker" className="sr-only">Pick custom accent color</label>
+                <input
+                  id="custom-color-picker"
+                  type="color"
+                  ref={colorInputRef}
+                  className="absolute inset-0 opacity-0 pointer-events-none"
+                  aria-label="Pick custom accent color"
+                  onChange={(e) => setAccent(e.target.value)}
+                />
                 <button
                   onClick={() => colorInputRef.current?.click()}
+                  aria-label="Open custom color picker"
                   className={`w-8 h-8 rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center transition-all ${isCustomColor ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-900 border-solid" : "opacity-50 hover:opacity-100"}`}
                   style={isCustomColor ? { backgroundColor: accent } : {}}
                 >

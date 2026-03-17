@@ -57,7 +57,7 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ categories,
   };
 
   return (
-    <div className="fixed inset-0 bg-black z-[80] flex flex-col p-6 animate-in slide-in-from-bottom duration-300">
+    <div className="fixed inset-0 bg-black z-80 flex flex-col p-6 animate-in slide-in-from-bottom duration-300">
       <div className="flex items-center gap-4 mb-8">
         <button 
           onClick={onClose} 
@@ -80,11 +80,12 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ categories,
           />
           <button 
             type="submit"
+            aria-label="Add new category"
             disabled={!newCat.trim()}
             className="h-14 px-6 text-black rounded-2xl font-black disabled:opacity-30 active:scale-95 transition-transform"
             style={{ backgroundColor: accentColor }}
           >
-            <PlusIcon />
+            <PlusIcon aria-hidden="true" />
           </button>
         </div>
         {error && <p className="text-red-500 text-xs font-bold px-2 animate-pulse">{error}</p>}

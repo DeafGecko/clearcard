@@ -74,10 +74,10 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
   };
 
   return (
-    <div className="fixed inset-0 bg-black z-[70] flex flex-col p-6 animate-in slide-in-from-bottom duration-300 overflow-y-auto">
+    <div className="fixed inset-0 bg-black z-70 flex flex-col p-6 animate-in slide-in-from-bottom duration-300 overflow-y-auto">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={onClose} className="p-3 bg-zinc-900 rounded-2xl active:scale-95 transition-transform">
-          <ArrowLeftIcon />
+        <button onClick={onClose} aria-label="Close card editor" className="p-3 bg-zinc-900 rounded-2xl active:scale-95 transition-transform">
+          <ArrowLeftIcon aria-hidden="true" />
         </button>
         <h2 className="text-2xl font-black">{initialData ? 'Edit Card' : 'New Card'}</h2>
       </div>
@@ -189,14 +189,14 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="What should it say in huge letters?"
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-3xl p-6 pb-16 text-white font-bold outline-none min-h-[220px] focus:ring-2 transition-all resize-none"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-3xl p-6 pb-16 text-white font-bold outline-none min-h-220px focus:ring-2 transition-all resize-none"
               style={{ '--tw-ring-color': accentColor } as any}
             />
 
             {/* Smart Assist Button */}
             <div className="absolute bottom-4 right-4 flex items-center">
               {isAiMenuOpen && (
-                <div className="absolute bottom-full right-0 mb-3 bg-zinc-800 border border-zinc-700 rounded-2xl p-2 shadow-2xl flex flex-col gap-1 min-w-[140px] animate-in slide-in-from-bottom-2 fade-in duration-200">
+                <div className="absolute bottom-full right-0 mb-3 bg-zinc-800 border border-zinc-700 rounded-2xl p-2 shadow-2xl flex flex-col gap-1 min-w-140px animate-in slide-in-from-bottom-2 fade-in duration-200">
                   <button type="button" onClick={() => handleRewrite('professional')} className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-700 text-sm font-bold transition-colors flex items-center justify-between">
                     Professional
                     <span className="text-[8px] bg-zinc-900 px-1.5 py-0.5 rounded text-zinc-500">FORMAL</span>

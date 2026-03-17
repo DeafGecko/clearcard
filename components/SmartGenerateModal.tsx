@@ -105,7 +105,7 @@ const SmartGenerateModal: React.FC<SmartGenerateModalProps> = ({ categories, onG
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[60] flex items-end sm:items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-60 flex items-end sm:items-center justify-center p-4">
       <div className="bg-zinc-900 w-full max-w-lg rounded-3xl border border-zinc-800 shadow-2xl p-6 animate-in slide-in-from-bottom duration-300 space-y-5 overflow-y-auto max-h-[90vh]">
 
         {/* Header */}
@@ -157,7 +157,7 @@ const SmartGenerateModal: React.FC<SmartGenerateModalProps> = ({ categories, onG
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="e.g. I am at the dentist for a checkup..."
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-white focus:outline-none min-h-[90px] font-medium resize-none"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-white focus:outline-none min-h-22.5 font-medium resize-none"
               />
             </div>
 
@@ -244,7 +244,7 @@ const SmartGenerateModal: React.FC<SmartGenerateModalProps> = ({ categories, onG
                 value={grammarText}
                 onChange={(e) => setGrammarText(e.target.value)}
                 placeholder="Type or paste your text here to fix grammar..."
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-white focus:outline-none min-h-[110px] font-medium resize-none"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-white focus:outline-none min-h-27.5 font-medium resize-none"
               />
             </div>
 

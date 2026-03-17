@@ -191,10 +191,11 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
   // CONVERSATION LIST VIEW
   if (!activeConvId) {
     return (
-      <div className="fixed inset-0 bg-black z-[100] flex flex-col animate-in slide-in-from-bottom duration-300">
+      <div className="fixed inset-0 bg-black z-[100 flex flex-col animate-in slide-in-from-bottom duration-300">
         <div className="flex items-center justify-between px-6 pt-12 pb-4 border-b border-zinc-900">
           <button onClick={onClose} className="w-10 h-10 rounded-2xl bg-zinc-900 flex items-center justify-center active:scale-90 transition-transform">
             <ArrowLeftIcon />
+            <span className="sr-only">Close chat</span>
           </button>
           <div className="text-center">
             <h2 className="text-lg font-black uppercase tracking-tight">ClearChat</h2>
@@ -204,6 +205,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
             onClick={createConversation}
             className="w-10 h-10 rounded-2xl flex items-center justify-center active:scale-90 transition-transform text-black"
             style={{ backgroundColor: accentColor }}
+            aria-label="New conversation"
           >
             <PlusIcon />
           </button>
@@ -217,7 +219,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
               </div>
               <div>
                 <p className="font-black text-sm uppercase tracking-widest mb-1">No Conversations</p>
-                <p className="text-zinc-600 text-xs max-w-[220px] leading-relaxed">Tap + to start a new silent conversation.</p>
+                <p className="text-zinc-600 text-xs max-w-220px leading-relaxed">Tap + to start a new silent conversation.</p>
               </div>
             </div>
           ) : (
@@ -225,7 +227,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
               <div
                 key={conv.id}
                 onClick={() => { setActiveConvId(conv.id); setActiveSender('deaf'); }}
-                className="bg-zinc-950 border border-zinc-900 rounded-[24px] px-5 py-4 flex items-center gap-4 cursor-pointer active:bg-zinc-900 transition-all"
+                className="bg-zinc-950 border border-zinc-900 rounded-24px px-5 py-4 flex items-center gap-4 cursor-pointer active:bg-zinc-900 transition-all"
               >
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: accentColor }}>
                   <MessageCircle size={20} color="black" />
@@ -239,6 +241,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
                 <button
                   onClick={(e) => deleteConversation(conv.id, e)}
                   className="w-9 h-9 flex items-center justify-center text-zinc-700 hover:text-red-500 active:scale-125 transition-all"
+                  aria-label="Delete conversation"
                 >
                   <TrashIcon />
                 </button>
@@ -262,10 +265,11 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
 
   // ACTIVE CONVERSATION VIEW
   return (
-    <div className="fixed inset-0 bg-black z-[100] flex flex-col animate-in slide-in-from-bottom duration-300">
+    <div className="fixed inset-0 bg-black z-100 flex flex-col animate-in slide-in-from-bottom duration-300">
       <div className="flex items-center justify-between px-6 pt-12 pb-4 border-b border-zinc-900">
         <button onClick={() => setActiveConvId(null)} className="w-10 h-10 rounded-2xl bg-zinc-900 flex items-center justify-center active:scale-90 transition-transform">
           <ArrowLeftIcon />
+          <span className="sr-only">Back to conversations</span>
         </button>
         <div className="text-center flex-1 px-2">
           {editingName ? (
@@ -276,13 +280,14 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
               onBlur={saveName}
               onKeyDown={(e) => { if (e.key === 'Enter') saveName(); }}
               className="bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-1 text-sm font-black text-center w-full outline-none"
+              aria-label="Conversation name"
             />
           ) : (
             <button
               onClick={() => { setNameInput(activeConv?.name || ''); setEditingName(true); }}
               className="flex items-center justify-center gap-1.5 mx-auto"
             >
-              <span className="text-base font-black uppercase tracking-tight truncate max-w-[160px]">{activeConv?.name}</span>
+              <span className="text-base font-black uppercase tracking-tight truncate max-w-160px">{activeConv?.name}</span>
               <EditIcon />
             </button>
           )}
@@ -292,6 +297,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
         </div>
         <button onClick={clearMessages} className="w-10 h-10 rounded-2xl bg-zinc-900 flex items-center justify-center active:scale-90 transition-transform text-zinc-500 hover:text-red-500">
           <TrashIcon />
+          <span className="sr-only">Clear messages</span>
         </button>
       </div>
 
@@ -320,7 +326,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
             <div className="w-16 h-16 bg-zinc-900 rounded-3xl flex items-center justify-center" style={{ color: accentColor }}>
               <MessageCircle size={28} />
             </div>
-            <p className="text-zinc-600 text-xs max-w-[220px] leading-relaxed">Type a message and pass the phone back and forth.</p>
+            <p className="text-zinc-600 text-xs max-w-220px leading-relaxed">Type a message and pass the phone back and forth.</p>
           </div>
         )}
         {activeConv?.messages.map(msg => (
@@ -329,7 +335,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
               {msg.sender === 'deaf' ? 'Deaf' : 'Hearing'}
             </span>
             <div
-              className={`max-w-[78%] px-5 py-3 rounded-3xl text-base font-bold leading-snug break-words ${
+              className={`max-w-[78%] px-5 py-3 rounded-3xl text-base font-bold leading-snug wrap-break-words ${
                 msg.sender === 'deaf' ? 'bg-white text-black rounded-br-lg' : 'bg-zinc-800 text-white rounded-bl-lg'
               }`}
             >
@@ -359,7 +365,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
               isListening ? 'text-white animate-pulse' : 'bg-zinc-800 text-zinc-400 border-zinc-700'
             }`}
             style={isListening ? { backgroundColor: '#E53935', borderColor: '#E53935' } : {}}
-            aria-label="Voice to text"
+            aria-label={isListening ? 'Stop voice to text' : 'Start voice to text'}
           >
             {isListening ? <MicOff size={20} /> : <Mic size={20} />}
           </button>
@@ -369,6 +375,7 @@ const ClearChat: React.FC<ClearChatProps> = ({ onClose, accentColor }) => {
           disabled={!input.trim()}
           className="w-12 h-12 rounded-2xl flex items-center justify-center text-black font-black active:scale-90 transition-all disabled:opacity-30 shrink-0"
           style={{ backgroundColor: accentColor }}
+          aria-label="Send message"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
         </button>
