@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { VisioCard, Category, UserPreferences, SystemCategories } from './types';
 import { storage } from './lib/storage';
-import ClearChat from './components/ClearChat';
 import { MessageCircle, Settings, FileKey } from 'lucide-react';
-import { PlusIcon, LockIcon, SparklesIcon, MedicalIcon, DailyIcon, ServiceIcon, EditIcon, CrossIcon, SettingsIcon, TrashIcon } from './components/Icons';
 import FullscreenViewer from './components/FullscreenViewer';
-import SmartGenerateModal from './components/SmartGenerateModal';
 import CardEditorModal from './components/CardEditorModal';
 import CategoryManagerModal from './components/CategoryManagerModal';
 import PasscodeModal from './components/PasscodeModal';
@@ -18,12 +15,10 @@ const App: React.FC = () => {
   const [selectedCard, setSelectedCard] = useState<VisioCard | null>(null);
   const [editingCard, setEditingCard] = useState<VisioCard | null>(null);
   const [activeCategory, setActiveCategory] = useState<Category | 'All'>('All');
-  const [showSmartModal, setShowSmartModal] = useState(false);
   const [showEditorModal, setShowEditorModal] = useState(false);
   const [showCatModal, setShowCatModal] = useState(false);
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [showClearChat, setShowClearChat] = useState(false);
   const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
 
   useEffect(() => {
@@ -81,7 +76,6 @@ const App: React.FC = () => {
       storage.saveCards(nextCards);
       return nextCards;
     });
-    setShowSmartModal(false);
     setShowEditorModal(false);
     setEditingCard(null);
     triggerHaptic(50);
@@ -337,16 +331,8 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 bg-black/95 backdrop-blur-xl border-t border-zinc-900 px-8 pb-8 pt-4 flex items-center justify-between">
-        <button
-          onClick={() => { triggerHaptic(30); setShowClearChat(true); }}
-          className="w-11 h-11 rounded-2xl bg-zinc-800 text-white flex items-center justify-center active:scale-95 transition-all border border-zinc-700"
-          aria-label="ClearChat"
-        >
-          <MessageCircle size={20} />
-        </button>
-
+      {/* Bottom Bar (AI and ClearChat removed) */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 bg-black/95 backdrop-blur-xl border-t border-zinc-900 px-8 pb-8 pt-4 flex items-center justify-center">
         <button
           onClick={() => { triggerHaptic(10); setEditingCard(null); setShowEditorModal(true); }}
           className="w-14 h-14 rounded-2xl text-black flex items-center justify-center active:scale-95 transition-all shadow-lg"
@@ -355,19 +341,9 @@ const App: React.FC = () => {
         >
           <PlusIcon />
         </button>
-
-        <button
-          onClick={() => { triggerHaptic(30); setShowSmartModal(true); }}
-          className="w-11 h-11 rounded-2xl bg-zinc-800 text-white flex items-center justify-center active:scale-95 transition-all border border-zinc-700"
-          aria-label="Smart Generate"
-        >
-          <SparklesIcon />
-        </button>
       </div>
 
       {selectedCard && <FullscreenViewer card={selectedCard} onClose={() => setSelectedCard(null)} onEdit={(card) => startEditing(card)} initialFontSize={prefs.fontSize} accentColor={accentColor} displayTextColor={prefs.displayTextColor} />}
-      {showSmartModal && <SmartGenerateModal categories={categories} onClose={() => setShowSmartModal(false)} onGenerated={handleSaveCard} accentColor={accentColor} />}
-      {showClearChat && <ClearChat onClose={() => setShowClearChat(false)} accentColor={accentColor} />}
       {showEditorModal && <CardEditorModal categories={categories} onClose={() => { setShowEditorModal(false); setEditingCard(null); }} onSave={(data) => handleSaveCard(data, editingCard?.id)} initialData={editingCard || undefined} accentColor={accentColor} passcode={prefs.passcode} />}
       {showCatModal && <CategoryManagerModal categories={categories} onAdd={handleAddCategory} onDelete={handleDeleteCategory} onReorder={handleReorderCategories} onClose={() => setShowCatModal(false)} accentColor={accentColor} />}
       {showPasscodeModal && <PasscodeModal onVerify={handlePasscodeVerify} onClose={() => setShowPasscodeModal(false)} accentColor={accentColor} />}

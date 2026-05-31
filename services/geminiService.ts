@@ -3,26 +3,25 @@ import { Category, SystemCategories } from "../types";
 const templates = {
   english: {
     professional: {
-      pharmacy: { title: "Pharmacy Pickup", content: "I am here to pick up my prescription. My name is [Your Name]. I am Deaf — please write to communicate." },
-      doctor: { title: "Doctor Appointment", content: "I have an appointment scheduled. I am Deaf. Please write notes or use text to communicate with me." },
-      dentist: { title: "Dentist Visit", content: "I have a dental appointment at [Time]. I am Deaf — please write to communicate. Thank you." },
-      coffee: { title: "Coffee Order", content: "I would like to order a [size] [drink], please. Thank you for your assistance." },
-      food: { title: "Food Order", content: "I would like to place an order for [item]. I am Deaf — please write to communicate." },
-      uber: { title: "Rideshare Notice", content: "I am Deaf. Please communicate via text message only. Do not call. Thank you for your understanding." },
-      emergency: { title: "Emergency Alert", content: "I am Deaf. This is an emergency. Please assist me immediately and contact emergency services if needed." },
-      hotel: { title: "Hotel Check-in", content: "I have a reservation under [Your Name]. I am Deaf — please write or use a tablet to communicate." },
-      store: { title: "Store Assistance", content: "I am Deaf and require assistance locating [item]. Could you please help me? Thank you." },
-      bank: { title: "Bank Assistance", content: "I am Deaf and need help with [transaction]. Please write to communicate. Thank you for your patience." },
+      pharmacy: { title: "Pharmacy Pickup", content: "I am here to pick up my prescription. My name is [Your Name]. [Your Birth Date]" },
+      doctor: { title: "Doctor Appointment", content: "I have an appointment scheduled. My name is [Your Name]." },
+      dentist: { title: "Dentist Visit", content: "I have a dental appointment at [Time]." },
+      coffee: { title: "Coffee Order", content: "I would like to order a [size] [drink], please." },
+      food: { title: "Food Order", content: "I would like to place an order for [item]." },
+      uber: { title: "Rideshare Notice", content: "Please communicate via text message only. Do not call. Thank you for your understanding." },
+      emergency: { title: "Emergency Alert", content: "This is an emergency. Please assist me immediately and contact emergency services if needed." },
+      hotel: { title: "Hotel Check-in", content: "I have a reservation under [Your Name]." },
+      bank: { title: "Bank Assistance", content: "I need help with [transaction]." },
     },
     casual: {
-      pharmacy: { title: "Picking Up Prescription", content: "Hi! I'm here to grab my prescription. Name is [Your Name]. I'm Deaf — can you write it down? Thanks!" },
+      pharmacy: { title: "Picking Up Prescription", content: "Hi! I'm here to grab my prescription. Name is [Your Name]." },
       doctor: { title: "Doctor Visit", content: "Hey! I have an appointment here. I'm Deaf, so writing or texting works best for me. Thanks!" },
       dentist: { title: "Dentist Appointment", content: "Hi! I'm here for my dental appointment at [Time]. I'm Deaf — writing works best. Thanks!" },
       coffee: { title: "Coffee Order", content: "Hey! Can I get a [size] [drink] please? Thanks so much!" },
       food: { title: "Food Order", content: "Hi! I'd love to order [item]. I'm Deaf — writing works great. Thanks!" },
       uber: { title: "Rideshare Note", content: "Hey! I'm Deaf so please text me instead of calling. Thanks a lot!" },
       emergency: { title: "Emergency!", content: "I'm Deaf. This is an emergency — please help me right away!" },
-      hotel: { title: "Hotel Check-in", content: "Hi! I have a reservation under [Your Name]. I'm Deaf so writing or texting works best. Thanks!" },
+      hotel: { title: "Hotel Check-in", content: "Hi! I have a reservation under [Your Name]." },
       store: { title: "Need Help Finding Something", content: "Hi! I'm Deaf — can you help me find [item]? Writing works great. Thanks!" },
       bank: { title: "Bank Help", content: "Hi! I need help with [transaction]. I'm Deaf so writing works best. Thanks!" },
     }
@@ -68,27 +67,19 @@ function matchTemplate(prompt: string, language: 'english' | 'spanish', tone: 'p
       (key === 'uber' && (lower.includes('lyft') || lower.includes('ride') || lower.includes('driver') || lower.includes('taxi'))) ||
       (key === 'emergency' && (lower.includes('help') || lower.includes('urgent') || lower.includes('ayuda')))
     ) {
-      const cat = categories.includes(SystemCategories.MEDICAL) && ['pharmacy','doctor','dentist'].includes(key)
+      const cat = categories.includes(SystemCategories.MEDICAL) && ['pharmacy', 'doctor', 'dentist'].includes(key)
         ? SystemCategories.MEDICAL
         : key === 'emergency' ? SystemCategories.EMERGENCY
-        : ['uber','hotel','bank','store'].includes(key) ? SystemCategories.SERVICES
-        : SystemCategories.DAILY;
+          : ['uber', 'hotel', 'bank', 'store'].includes(key) ? SystemCategories.SERVICES
+            : SystemCategories.DAILY;
       return { title: item.title, content: item.content, category: categories.includes(cat) ? cat : categories[0] };
     }
   }
 
-  // Generic fallback
-  const isSpanish = language === 'spanish';
-  const isPro = tone === 'professional';
+  // Generic fallback: just return grammar-corrected prompt as content
   return {
     title: prompt.split(' ').slice(0, 4).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-    content: isSpanish
-      ? isPro
-        ? `Soy sordo/a. ${prompt.charAt(0).toUpperCase() + prompt.slice(1)}. Por favor escríbame para comunicarse. Gracias.`
-        : `¡Hola! Soy sordo/a. ${prompt.charAt(0).toUpperCase() + prompt.slice(1)}. ¡Escribir funciona mejor, gracias!`
-      : isPro
-        ? `I am Deaf. ${prompt.charAt(0).toUpperCase() + prompt.slice(1)}. Please write to communicate. Thank you.`
-        : `Hi! I'm Deaf. ${prompt.charAt(0).toUpperCase() + prompt.slice(1)}. Writing works best — thanks!`,
+    content: prompt.charAt(0).toUpperCase() + prompt.slice(1),
     category: categories.includes(SystemCategories.DAILY) ? SystemCategories.DAILY : categories[0],
   };
 }

@@ -33,21 +33,6 @@ Instead of typing out messages repeatedly, users build a personal library of hig
 - Toggle any card as private directly in the editor
 - Vault auto-locks when leaving the section
 
-### ClearChat
-- Silent back-and-forth conversation tool
-- **Deaf** and **Hearing** labeled message bubbles
-- Auto-shifts to the other person after each message is sent
-- Voice-to-text mic button for the hearing person
-- Conversation history saved locally with editable names (Chat 1, Chat 2, etc.)
-- Persistent across sessions using localStorage
-
-### Smart Generate
-- **Generate Card tab** — describe a situation and get a ready-made card instantly
-- Supports English and Spanish
-- Professional or Casual tone selection
-- **Fix Grammar tab** — paste any text and get 2–3 corrected versions
-- Copy to clipboard or save directly as a card
-
 ### Settings
 - Accent color picker (5 presets + custom color wheel)
 - Display text color (White or Yellow)
@@ -65,7 +50,6 @@ Instead of typing out messages repeatedly, users build a personal library of hig
 | Icons | Lucide React |
 | Storage | localStorage (no backend required) |
 | Deployment | Vercel |
-| API (grammar) | Anthropic Claude via Vercel serverless function |
 
 ---
 
@@ -112,12 +96,10 @@ clearcard/
 ├── components/
 │   ├── CardEditorModal.tsx    # Create/edit cards
 │   ├── CategoryManagerModal.tsx
-│   ├── ClearChat.tsx          # Silent conversation tool
 │   ├── FullscreenViewer.tsx   # Full-screen card display
 │   ├── Icons.tsx              # SVG icon components
 │   ├── PasscodeModal.tsx      # Vault passcode entry
 │   ├── SettingsModal.tsx      # App settings
-│   └── SmartGenerateModal.tsx # AI card & grammar tool
 ├── lib/
 │   └── storage.ts             # localStorage helpers
 ├── services/
@@ -147,8 +129,12 @@ ClearCard stores all data **locally on the user's device** using `localStorage`.
 
 ## Roadmap
 
+// Roadmap (merge conflict resolved)
 - [ ] Add language support (Spanish, French, Chinese, and more)
 - [ ] AI-powered grammar correction via Anthropic API
+- [ ] PWA support (install to home screen)
+- [ ] Export/import cards as backup
+- [ ] QR code sharing for individual cards
 
 ---
 
