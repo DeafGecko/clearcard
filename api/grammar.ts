@@ -1,46 +1,98 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+export const config = { runtime: 'edge' };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  const { text, language, tone } = req.body;
-  if (!text) return res.status(400).json({ error: 'No text provided' });
+export default async function handler(req: Request) {
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY || '',
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: `You are a grammar correction assistant. Fix the grammar, spelling, and punctuation of the text below in ${language || 'English'}.
+    const { text, tone, instruction } = await req.json();
 
-Rules:
-- Keep the exact same meaning and intent
-- Do NOT add any phrases about being Deaf, hearing loss, or communication preferences
-- Do NOT add "I am Deaf" or "please write" or anything like that
-- Just fix the grammar and spelling only
-- Return ONLY a JSON array with 2-3 variations from ${tone === 'casual' ? 'casual' : tone === 'professional' ? 'professional' : 'both professional and casual'} tone
-- Format: ["corrected version 1", "corrected version 2", "corrected version 3"]
-- No explanation, no markdown, just the JSON array
+    if (!text || text.trim().length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No text provided' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
-Text to fix: "${text}"`
-        }]
-      })
-    });
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ error: 'API not configured' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    const prompt = instruction
+      ? `${instruction} Return ONLY the rewritten text with no explanation, no preamble, and no quotation marks.
+
+Text to rewrite:
+${text}`
+      : `Fix any grammar, spelling, or punctuation errors in the text below. Return ONLY the corrected text with no explanation, no preamble, and no quotation marks.
+
+Text to fix:
+${text}`;
+
+    const response = await fetch(
+      'https://api.anthropic.com/v1/messages',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1024,
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            }
+          ]
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('Anthropic error:', err);
+      return new Response(
+        JSON.stringify({ error: 'AI request failed' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
     const data = await response.json();
-    const raw = data.content?.[0]?.text || '[]';
-    const clean = raw.replace(/```json|```/g, '').trim();
-    const variations = JSON.parse(clean);
-    return res.status(200).json({ variations });
-  } catch (error) {
-    return res.status(500).json({ error: 'Failed to fix grammar' });
+    const corrected = data.content?.[0]?.text ?? text;
+
+    return new Response(
+      JSON.stringify({ corrected }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+
+  } catch (err) {
+    console.error('Grammar API error:', err);
+    return new Response(
+      JSON.stringify({ error: 'Something went wrong' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }
