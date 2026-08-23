@@ -249,7 +249,7 @@ const App: React.FC = () => {
               setShowSettingsModal(true);
             }}
             aria-label="Settings"
-            className="header-utility h-[60px] w-[60px] rounded-lg flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
+            className="header-utility h-15 w-15 rounded-lg flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
           >
             <Settings size={28} strokeWidth={2.5} />
           </button>
@@ -258,7 +258,7 @@ const App: React.FC = () => {
             aria-label={
               isVaultUnlocked ? 'Lock Private Info' : 'Unlock Private Info'
             }
-            className={`header-utility h-[60px] w-[60px] rounded-lg flex items-center justify-center transition-all ${
+            className={`header-utility h-15 w-15 rounded-lg flex items-center justify-center transition-all ${
               isVaultUnlocked
                 ? 'text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]'
                 : 'bg-zinc-900 text-zinc-600'
@@ -274,7 +274,7 @@ const App: React.FC = () => {
           aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={isMobileMenuOpen}
           aria-controls="mobile-header-menu"
-          className="header-utility md:hidden h-[60px] w-[60px] rounded-lg flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
+          className="header-utility md:hidden h-15 w-15 rounded-lg flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
         >
           {isMobileMenuOpen ? <X size={30} strokeWidth={2.5} /> : <Menu size={30} strokeWidth={2.5} />}
         </button>
@@ -464,14 +464,14 @@ const App: React.FC = () => {
                     <div className="desktop-card-actions absolute right-2 flex items-center gap-0.5">
                       <button
                         onClick={e => startEditing(card, e)}
-                        className="h-[60px] w-[60px] flex items-center justify-center text-zinc-700 hover:text-white active:scale-110 transition-all"
+                        className="h-15 w-15 flex items-center justify-center text-zinc-700 hover:text-white active:scale-110 transition-all"
                         aria-label="Edit"
                       >
                         <EditIcon />
                       </button>
                       <button
                         onClick={e => deleteCard(card.id, e)}
-                        className="h-[60px] w-[60px] flex items-center justify-center text-zinc-700 hover:text-red-500 active:scale-110 transition-all"
+                        className="h-15 w-15 flex items-center justify-center text-zinc-700 hover:text-red-500 active:scale-110 transition-all"
                         aria-label="Delete"
                       >
                         <TrashIcon />
@@ -493,7 +493,7 @@ const App: React.FC = () => {
             setEditingCard(null);
             setShowEditorModal(true);
           }}
-          className="w-[60px] h-[60px] rounded-lg text-black flex items-center justify-center active:scale-95 transition-all shadow-lg border-0"
+          className="w-15 h-15 rounded-lg text-black flex items-center justify-center active:scale-95 transition-all shadow-lg border-0"
           style={{
             backgroundColor: accentColor,
             boxShadow: `0 8px 24px ${accentColor}50`,
