@@ -102,7 +102,8 @@ const DEFAULT_CARDS: VisioCard[] = [
 
 const DEFAULT_PREFS: UserPreferences = { 
   fontSize: 48, 
-  highContrast: true, 
+  displaySize: 'normal',
+  themeMode: 'light',
   vaultLocked: true,
   accentColor: '#FACC15', // Tailwind yellow-400
   displayTextColor: '#FFFFFF', // Default set to white
@@ -127,7 +128,12 @@ export const storage = {
   },
   getPrefs: (): UserPreferences => {
     const data = localStorage.getItem(PREFS_KEY);
-    return data ? { ...DEFAULT_PREFS, ...JSON.parse(data) } : DEFAULT_PREFS;
+    if (!data) return DEFAULT_PREFS;
+
+    const saved = JSON.parse(data);
+    const themeMode = saved.themeMode || (saved.highContrast ? 'highContrast' : 'light');
+    const { highContrast: _legacyHighContrast, ...currentPrefs } = saved;
+    return { ...DEFAULT_PREFS, ...currentPrefs, themeMode };
   },
   savePrefs: (prefs: UserPreferences) => {
     localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));

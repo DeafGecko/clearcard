@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { VisioCard, Category, UserPreferences, SystemCategories } from './types';
 import { storage } from './lib/storage';
-import { Settings, FileKey } from 'lucide-react';
+import { Settings, FileKey, LogOut, Menu, X } from 'lucide-react';
 import {
-  CrossIcon,
   TrashIcon,
   PlusIcon,
   EditIcon,
   MedicalIcon,
-  DailyIcon,
-  ServiceIcon,
 } from './components/Icons';
 import FullscreenViewer from './components/FullscreenViewer';
 import CardEditorModal from './components/CardEditorModal';
@@ -29,6 +26,10 @@ const App: React.FC = () => {
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openSwipeCardId, setOpenSwipeCardId] = useState<string | null>(null);
+  const swipeStartX = useRef(0);
+  const didSwipe = useRef(false);
 
   useEffect(() => {
     setCards(storage.getCards());
@@ -44,6 +45,10 @@ const App: React.FC = () => {
       document.documentElement.setAttribute('translate', 'yes');
     }
   }, [prefs.appLanguage]);
+
+  useEffect(() => {
+    document.documentElement.style.colorScheme = prefs.themeMode === 'light' ? 'light' : 'dark';
+  }, [prefs.themeMode]);
 
   const triggerHaptic = (ms: number = 10) => {
     if ('vibrate' in navigator) navigator.vibrate(ms);
@@ -96,9 +101,10 @@ const App: React.FC = () => {
     triggerHaptic(50);
   };
 
-  const deleteCard = (id: string, e: React.MouseEvent) => {
+  const deleteCard = (id: string, e: React.SyntheticEvent) => {
     e.stopPropagation();
     triggerHaptic(100);
+    setOpenSwipeCardId(null);
     setCards(prev => {
       const next = prev.filter(c => c.id !== id);
       storage.saveCards(next);
@@ -112,6 +118,28 @@ const App: React.FC = () => {
     setSelectedCard(null);
     setEditingCard(card);
     setShowEditorModal(true);
+  };
+
+  const handleSwipeStart = (event: React.TouchEvent, cardId: string) => {
+    if (!window.matchMedia('(max-width: 1024px)').matches) return;
+    swipeStartX.current = event.touches[0].clientX;
+    didSwipe.current = false;
+    if (openSwipeCardId && openSwipeCardId !== cardId) {
+      setOpenSwipeCardId(null);
+    }
+  };
+
+  const handleSwipeEnd = (event: React.TouchEvent, cardId: string) => {
+    if (!window.matchMedia('(max-width: 1024px)').matches) return;
+    const distance = event.changedTouches[0].clientX - swipeStartX.current;
+    if (distance < -45) {
+      didSwipe.current = true;
+      setOpenSwipeCardId(cardId);
+      triggerHaptic(20);
+    } else if (distance > 45) {
+      didSwipe.current = true;
+      setOpenSwipeCardId(null);
+    }
   };
 
   const handleAddCategory = (name: string) => {
@@ -192,25 +220,6 @@ const App: React.FC = () => {
     return c.category === activeCategory;
   });
 
-  const getCatIcon = (cat: Category) => {
-    switch (cat) {
-      case SystemCategories.MEDICAL:
-        return <MedicalIcon />;
-      case SystemCategories.DAILY:
-        return <DailyIcon />;
-      case SystemCategories.SERVICES:
-        return <ServiceIcon />;
-      case SystemCategories.EMERGENCY:
-        return <CrossIcon />;
-      default:
-        return (
-          <div className="text-zinc-600 font-bold">
-            {cat[0]?.toUpperCase() || '?'}
-          </div>
-        );
-    }
-  };
-
   const otherCats = categories.filter(
     c => c !== SystemCategories.EMERGENCY
   );
@@ -218,67 +227,101 @@ const App: React.FC = () => {
   const emergencyColor = '#E53935';
 
   return (
-    <div className="min-h-screen bg-black text-white pb-40 landscape:pb-24 select-none">
+    <div
+      className="app-shell select-none"
+      data-theme={prefs.themeMode || 'light'}
+      data-display-size={prefs.displaySize || 'normal'}
+    >
       {/* HEADER */}
-      <header className="sticky top-0 z-30 bg-black/95 backdrop-blur-xl border-b border-zinc-900 px-6 pt-12 landscape:pt-4 pb-6 landscape:pb-2 flex justify-between items-end">
+      <header className="app-header relative shrink-0 z-40 px-4 sm:px-6 pt-12 landscape:pt-4 pb-6 landscape:pb-2 flex justify-between items-end overflow-visible">
         <div>
-          <h1 className="text-4xl landscape:text-2xl font-black tracking-tighter leading-none mb-1 uppercase">
+          <h1 className="text-3xl sm:text-4xl landscape:text-2xl font-black leading-none mb-1 uppercase">
             ClearCard
           </h1>
-          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] landscape:hidden">
-            Smart Vis-Com Cards
+          <p className="brand-motto text-zinc-500">
+            Communication made clear.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="hidden md:flex gap-2">
           <button
             onClick={() => {
               triggerHaptic(15);
               setShowSettingsModal(true);
             }}
             aria-label="Settings"
-            className="h-11 w-11 rounded-2xl flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
+            className="header-utility h-[60px] w-[60px] rounded-lg flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
           >
-            <Settings size={20} />
+            <Settings size={28} strokeWidth={2.5} />
           </button>
           <button
             onClick={handleLockToggle}
             aria-label={
               isVaultUnlocked ? 'Lock Private Info' : 'Unlock Private Info'
             }
-            className={`h-11 w-11 rounded-2xl flex items-center justify-center transition-all ${
+            className={`header-utility h-[60px] w-[60px] rounded-lg flex items-center justify-center transition-all ${
               isVaultUnlocked
                 ? 'text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]'
                 : 'bg-zinc-900 text-zinc-600'
             }`}
             style={isVaultUnlocked ? { backgroundColor: accentColor } : {}}
           >
-            <FileKey size={20} />
+            <LogOut size={28} strokeWidth={2.5} />
           </button>
         </div>
+
+        <button
+          onClick={() => setIsMobileMenuOpen(isOpen => !isOpen)}
+          aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-header-menu"
+          className="header-utility md:hidden h-[60px] w-[60px] rounded-lg flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
+        >
+          {isMobileMenuOpen ? <X size={30} strokeWidth={2.5} /> : <Menu size={30} strokeWidth={2.5} />}
+        </button>
+
+        {isMobileMenuOpen && (
+          <div id="mobile-header-menu" className="mobile-header-menu md:hidden absolute right-4 top-full w-64 p-2 rounded-lg shadow-2xl z-50">
+            <button
+              onClick={() => {
+                triggerHaptic(15);
+                setShowSettingsModal(true);
+                setIsMobileMenuOpen(false);
+              }}
+              className="mobile-header-menu-item"
+            >
+              <Settings size={24} strokeWidth={2.5} />
+              <span>Settings</span>
+            </button>
+            <button
+              onClick={() => {
+                handleLockToggle();
+                setIsMobileMenuOpen(false);
+              }}
+              className="mobile-header-menu-item"
+            >
+              <LogOut size={24} strokeWidth={2.5} />
+              <span>{isVaultUnlocked ? 'Lock private info' : 'Unlock private info'}</span>
+            </button>
+          </div>
+        )}
       </header>
 
       {/* CATEGORY NAV */}
-      <nav className="sticky top-27 landscape:top-16 z-30 bg-black/95 backdrop-blur-xl py-4 landscape:py-2 overflow-x-auto whitespace-nowrap px-6 no-scrollbar flex items-center gap-2">
+      <nav className="app-nav shrink-0 z-30 pt-7 pb-4 landscape:pt-6 landscape:pb-2 overflow-x-auto whitespace-nowrap px-6 no-scrollbar flex items-center gap-2">
         <button
           onClick={() => {
             triggerHaptic(50);
             setActiveCategory(SystemCategories.EMERGENCY);
           }}
-          className={`h-11 w-11 landscape:h-9 landscape:w-9 shrink-0 rounded-2xl flex items-center justify-center transition-all text-white shadow-lg ${
+          className={`nav-primary-button nav-emergency-button ${
             activeCategory === SystemCategories.EMERGENCY
-              ? 'scale-110 z-10 ring-2 ring-white/80'
-              : 'opacity-90 hover:opacity-100'
+              ? 'is-active'
+              : ''
           }`}
-          style={{
-            backgroundColor: emergencyColor,
-            boxShadow:
-              activeCategory === SystemCategories.EMERGENCY
-                ? '0 0 20px rgba(229, 57, 53, 0.7)'
-                : undefined,
-          }}
           aria-label="Emergency"
+          aria-pressed={activeCategory === SystemCategories.EMERGENCY}
         >
-          <CrossIcon />
+          <MedicalIcon size={34} />
         </button>
 
         <button
@@ -287,16 +330,9 @@ const App: React.FC = () => {
             setActiveCategory('All');
             setIsVaultUnlocked(false);
           }}
-          className={`px-6 py-3 landscape:py-2 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border ${
-            activeCategory === 'All'
-              ? 'text-black'
-              : 'bg-zinc-900 text-zinc-500 border-zinc-800'
-          }`}
-          style={
-            activeCategory === 'All'
-              ? { backgroundColor: accentColor, borderColor: accentColor }
-              : {}
-          }
+          className={`nav-primary-button nav-all-button ${activeCategory === 'All' ? 'is-active' : ''}`}
+          style={{ '--nav-button-color': accentColor } as React.CSSProperties}
+          aria-pressed={activeCategory === 'All'}
         >
           All
         </button>
@@ -308,16 +344,13 @@ const App: React.FC = () => {
               triggerHaptic();
               setActiveCategory(cat as any);
             }}
-            className={`px-6 py-3 landscape:py-2 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border ${
-              activeCategory === cat
-                ? 'text-black'
-                : 'bg-zinc-900 text-zinc-500 border-zinc-800'
-            }`}
+            className={`nav-category-button ${activeCategory === cat ? 'is-active' : ''}`}
             style={
               activeCategory === cat
                 ? { backgroundColor: accentColor, borderColor: accentColor }
                 : {}
             }
+            aria-pressed={activeCategory === cat}
           >
             {cat}
           </button>
@@ -328,15 +361,14 @@ const App: React.FC = () => {
             triggerHaptic(15);
             setShowCatModal(true);
           }}
-          className="px-4 py-3 landscape:py-2 bg-zinc-900 rounded-2xl border border-zinc-800 font-black text-xs uppercase tracking-widest active:scale-95 transition-transform"
-          style={{ color: accentColor }}
+          className="nav-modify-button"
         >
           Modify
         </button>
       </nav>
 
       {/* MAIN CONTENT */}
-      <main className="px-6 mt-6 landscape:mt-2">
+      <main className="app-card-scroll flex-1 min-h-0 overflow-y-auto px-6 pt-8 pb-40 landscape:pt-6 landscape:pb-24">
         {activeCategory === SystemCategories.VAULT && !isVaultUnlocked ? (
           <div className="flex flex-col items-center justify-center py-20 landscape:py-8 text-center animate-in fade-in zoom-in duration-500">
             <div className="w-24 h-24 landscape:w-16 landscape:h-16 bg-zinc-900 rounded-[40px] flex items-center justify-center mb-8 landscape:mb-4 text-zinc-600">
@@ -353,7 +385,7 @@ const App: React.FC = () => {
                 triggerHaptic(40);
                 setShowPasscodeModal(true);
               }}
-              className="w-full max-w-sm h-16 landscape:h-12 bg-white text-black rounded-3xl font-black text-lg landscape:text-sm active:scale-95 transition-transform"
+              className="w-full max-w-sm h-16 landscape:h-12 bg-white text-black rounded-lg font-black text-lg landscape:text-sm active:scale-95 transition-transform"
             >
               UNLOCK VAULT
             </button>
@@ -369,71 +401,84 @@ const App: React.FC = () => {
               </div>
             ) : (
               filteredCards.map(card => (
-                <article
+                <div
                   key={card.id}
                   role="listitem"
-                  onClick={() => {
-                    triggerHaptic(15);
-                    setSelectedCard(card);
-                  }}
-                  className="group relative bg-zinc-950 border border-zinc-900 px-4 py-5 landscape:py-3 rounded-[28px] cursor-pointer active:bg-zinc-900 transition-all flex items-center gap-4 overflow-hidden"
-                  style={
-                    { '--accent-color': accentColor } as React.CSSProperties
-                  }
+                  className="swipe-card relative rounded-lg overflow-hidden"
                 >
-                  <div
-                    className={`shrink-0 w-12 h-12 landscape:w-10 landscape:h-10 flex items-center justify-center rounded-2xl ${
-                      card.category === SystemCategories.EMERGENCY
-                        ? 'text-white'
-                        : 'bg-zinc-900 text-zinc-500'
-                    }`}
-                    style={
-                      card.category === SystemCategories.EMERGENCY
-                        ? {
-                            backgroundColor: emergencyColor,
-                            boxShadow: '0 4px 12px rgba(229, 57, 53, 0.4)',
-                          }
-                        : {}
-                    }
-                  >
-                    {getCatIcon(card.category)}
-                  </div>
-
-                  <div className="flex-1 min-w-0 pr-20">
-                    <h3 className="text-lg landscape:text-base font-black truncate group-hover:text-(--accent-color) transition-colors">
-                      {card.title}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span
-                        className="text-[9px] font-black uppercase tracking-widest"
-                        style={
-                          card.category === SystemCategories.EMERGENCY
-                            ? { color: emergencyColor }
-                            : { color: '#52525b' }
-                        }
-                      >
-                        {card.category}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="absolute right-2 flex items-center gap-0.5">
+                  <div className="swipe-actions absolute inset-0 hidden justify-end bg-yellow-400">
                     <button
                       onClick={e => startEditing(card, e)}
-                      className="h-10 w-10 flex items-center justify-center text-zinc-700 hover:text-white active:scale-125 transition-all"
+                      className="w-21 shrink-0 bg-yellow-400 text-black flex items-center justify-center"
                       aria-label="Edit"
                     >
-                      <EditIcon />
+                      <EditIcon size={28} />
                     </button>
                     <button
                       onClick={e => deleteCard(card.id, e)}
-                      className="h-10 w-10 flex items-center justify-center text-zinc-700 hover:text-red-500 active:scale-125 transition-all"
+                      className="w-21 shrink-0 bg-red-600 text-white flex items-center justify-center"
                       aria-label="Delete"
                     >
-                      <TrashIcon />
+                      <TrashIcon size={28} />
                     </button>
                   </div>
-                </article>
+                  <article
+                    onTouchStart={event => handleSwipeStart(event, card.id)}
+                    onTouchEnd={event => handleSwipeEnd(event, card.id)}
+                    onClick={() => {
+                      if (didSwipe.current) {
+                        didSwipe.current = false;
+                        return;
+                      }
+                      if (openSwipeCardId === card.id) {
+                        setOpenSwipeCardId(null);
+                        return;
+                      }
+                      triggerHaptic(15);
+                      setSelectedCard(card);
+                    }}
+                    className="swipe-card-content app-card group relative px-6 py-3 rounded-lg cursor-pointer transition-transform flex items-center gap-4 overflow-hidden"
+                    data-open={openSwipeCardId === card.id}
+                    style={
+                      { '--accent-color': accentColor } as React.CSSProperties
+                    }
+                  >
+                    <div className="card-copy flex-1 min-w-0">
+                      <h3 className="text-2xl font-bold truncate group-hover:text-(--accent-color) transition-colors">
+                        {card.title}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span
+                          className="card-category font-bold"
+                          style={
+                            card.category === SystemCategories.EMERGENCY
+                              ? { color: emergencyColor }
+                              : undefined
+                          }
+                        >
+                          {card.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="desktop-card-actions absolute right-2 flex items-center gap-0.5">
+                      <button
+                        onClick={e => startEditing(card, e)}
+                        className="h-[60px] w-[60px] flex items-center justify-center text-zinc-700 hover:text-white active:scale-110 transition-all"
+                        aria-label="Edit"
+                      >
+                        <EditIcon />
+                      </button>
+                      <button
+                        onClick={e => deleteCard(card.id, e)}
+                        className="h-[60px] w-[60px] flex items-center justify-center text-zinc-700 hover:text-red-500 active:scale-110 transition-all"
+                        aria-label="Delete"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  </article>
+                </div>
               ))
             )}
           </div>
@@ -441,21 +486,21 @@ const App: React.FC = () => {
       </main>
 
       {/* BOTTOM BAR */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 bg-black/95 backdrop-blur-xl border-t border-zinc-900 px-8 pb-8 pt-4 flex items-center justify-center">
+      <div className="app-toolbar fixed bottom-0 left-0 right-0 z-20 px-8 pb-8 pt-4 flex items-center justify-center">
         <button
           onClick={() => {
             triggerHaptic(10);
             setEditingCard(null);
             setShowEditorModal(true);
           }}
-          className="w-14 h-14 rounded-2xl text-black flex items-center justify-center active:scale-95 transition-all shadow-lg"
+          className="w-[60px] h-[60px] rounded-lg text-black flex items-center justify-center active:scale-95 transition-all shadow-lg border-0"
           style={{
             backgroundColor: accentColor,
             boxShadow: `0 8px 24px ${accentColor}50`,
           }}
           aria-label="New Card"
         >
-          <PlusIcon />
+          <PlusIcon size={34} strokeWidth={4} />
         </button>
       </div>
 
@@ -481,6 +526,7 @@ const App: React.FC = () => {
           initialData={editingCard || undefined}
           accentColor={accentColor}
           passcode={prefs.passcode}
+          onSetPasscode={passcode => handleUpdatePrefs({ ...prefs, passcode })}
         />
       )}
       {showCatModal && (

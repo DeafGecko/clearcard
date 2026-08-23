@@ -47,7 +47,7 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
   const numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
   return (
-    <div className="fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center p-6 animate-in fade-in duration-300">
+    <div className="passcode-modal theme-page fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 animate-in fade-in duration-300">
       <div className="w-full max-w-xs flex flex-col items-center">
         <button 
           onClick={onClose}
@@ -76,13 +76,12 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
         </div>
 
         {/* Numeric Keypad */}
-        <div className="grid grid-cols-3 gap-4 w-full">
+        <div className="passcode-keypad grid grid-cols-3 w-full">
           {numbers.map(num => (
             <button
               key={num}
               onClick={() => handleNumber(num)}
-              className="h-20 w-20 rounded-full bg-zinc-900 flex items-center justify-center text-3xl font-black transition-colors"
-              style={{ '--active-bg': accentColor } as any}
+              className="passcode-key rounded-full bg-zinc-900 flex items-center justify-center font-black transition-colors"
             >
               {num}
             </button>
@@ -90,13 +89,14 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
           <div /> {/* Spacer */}
           <button
             onClick={() => handleNumber('0')}
-            className="h-20 w-20 rounded-full bg-zinc-900 flex items-center justify-center text-3xl font-black transition-colors"
+            className="passcode-key rounded-full bg-zinc-900 flex items-center justify-center font-black transition-colors"
           >
             0
           </button>
           <button
             onClick={handleDelete}
-            className="h-20 w-20 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-500 active:text-red-500 transition-colors"
+            className="passcode-key rounded-full bg-zinc-900 flex items-center justify-center text-zinc-500 active:text-red-500 transition-colors"
+            aria-label="Delete last digit"
           >
             <CircleXIcon />
           </button>

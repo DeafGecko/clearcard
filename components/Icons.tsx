@@ -1,6 +1,7 @@
 interface IconProps {
   className?: string;
   size?: number;
+  strokeWidth?: number;
 }
 
 // ── X / Close / Cross ──────────────────────────────
@@ -23,10 +24,9 @@ export const XIcon = CrossIcon;
 export function MedicalIcon({ className = '', size = 20 }: IconProps) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size}
-      viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+      viewBox="0 0 24 24" fill="currentColor"
       className={className} aria-hidden="true">
-      <path d="M12 2v20M2 12h20" />
+      <path d="M9 2h6v7h7v6h-7v7H9v-7H2V9h7V2z" />
     </svg>
   );
 }
@@ -130,11 +130,11 @@ export function CirclePlusIcon({ className = '', size = 20 }: IconProps) {
 }
 
 // ── Plus / Add ───────────────────────────────────────
-export function PlusIcon({ className = '', size = 20 }: IconProps) {
+export function PlusIcon({ className = '', size = 20, strokeWidth = 2 }: IconProps) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size}
       viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+      strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"
       className={className} aria-hidden="true">
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />

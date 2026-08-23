@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Category, SystemCategories } from '../types';
-import { ArrowLeftIcon, SparklesIcon, LockIcon } from './Icons';
-import { rewriteMessage } from '../services/geminiService';
+import { ArrowLeftIcon, LockIcon } from './Icons';
+import PasscodeModal from './PasscodeModal';
 
 interface CardEditorModalProps {
   categories: Category[];
@@ -10,27 +10,53 @@ interface CardEditorModalProps {
   initialData?: { title: string; content: string; category: Category };
   accentColor: string;
   passcode: string;
+  onSetPasscode: (passcode: string) => void;
 }
 
-const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, onClose, initialData, accentColor, passcode }) => {
+const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, onClose, initialData, accentColor, passcode, onSetPasscode }) => {
   const [title, setTitle] = useState(initialData?.title || '');
   const [content, setContent] = useState(initialData?.content || '');
   const [category, setCategory] = useState<Category>(initialData?.category || SystemCategories.DAILY);
-  const [isAiMenuOpen, setIsAiMenuOpen] = useState(false);
-  const [isRewriting, setIsRewriting] = useState(false);
   const [isPrivate, setIsPrivate] = useState(
     initialData?.category === SystemCategories.VAULT
   );
   const [showPasscodeGate, setShowPasscodeGate] = useState(false);
-  const [passcodeInput, setPasscodeInput] = useState('');
-  const [passcodeError, setPasscodeError] = useState(false);
+  const [newPasscodeDraft, setNewPasscodeDraft] = useState<string | null>(null);
+  const [showUnsavedPrompt, setShowUnsavedPrompt] = useState(false);
+
+  const hasChanges = title.trim() !== (initialData?.title || '').trim() ||
+    content.trim() !== (initialData?.content || '').trim() ||
+    (isPrivate ? SystemCategories.VAULT : category) !== (initialData?.category || SystemCategories.DAILY);
+
+  const handleClose = () => {
+    if (hasChanges) {
+      setShowUnsavedPrompt(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleSaveAndClose = () => {
+    if (title && content) {
+      const finalCategory = isPrivate ? SystemCategories.VAULT : category;
+      onSave({ title, content, category: finalCategory });
+    }
+  };
+
+  const markAsPrivate = () => {
+    setIsPrivate(true);
+    setCategory(SystemCategories.VAULT);
+  };
 
   const handlePrivateToggle = () => {
     if (!isPrivate) {
-      // Turning on private — ask for passcode
-      setShowPasscodeGate(true);
+      if (passcode) {
+        markAsPrivate();
+      } else {
+        setNewPasscodeDraft(null);
+        setShowPasscodeGate(true);
+      }
     } else {
-      // Turning off private
       setIsPrivate(false);
       if (category === SystemCategories.VAULT) {
         setCategory(SystemCategories.DAILY);
@@ -38,45 +64,33 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
     }
   };
 
-  const handlePasscodeSubmit = () => {
-    if (passcodeInput === passcode) {
-      setIsPrivate(true);
-      setCategory(SystemCategories.VAULT);
-      setShowPasscodeGate(false);
-      setPasscodeInput('');
-      setPasscodeError(false);
-    } else {
-      setPasscodeError(true);
-      setPasscodeInput('');
+  const handleNewPasscode = (code: string) => {
+    if (newPasscodeDraft === null) {
+      setNewPasscodeDraft(code);
+      return true;
     }
+
+    if (code !== newPasscodeDraft) return false;
+
+    onSetPasscode(code);
+    markAsPrivate();
+    setShowPasscodeGate(false);
+    setNewPasscodeDraft(null);
+    return true;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (title && content && !isRewriting) {
+    if (title && content) {
       const finalCategory = isPrivate ? SystemCategories.VAULT : category;
       onSave({ title, content, category: finalCategory });
     }
   };
 
-  const handleRewrite = async (tone: 'professional' | 'casual') => {
-    if (!content.trim() || isRewriting) return;
-    setIsRewriting(true);
-    setIsAiMenuOpen(false);
-    try {
-      const improved = await rewriteMessage(content, tone);
-      setContent(improved);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsRewriting(false);
-    }
-  };
-
   return (
-    <div className="fixed inset-0 bg-black z-70 flex flex-col p-6 animate-in slide-in-from-bottom duration-300 overflow-y-auto">
+    <div className="theme-page fixed inset-0 z-70 flex flex-col p-6 animate-in slide-in-from-bottom duration-300 overflow-y-auto">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={onClose} aria-label="Close card editor" className="p-3 bg-zinc-900 rounded-2xl active:scale-95 transition-transform">
+        <button onClick={handleClose} aria-label="Close card editor" className="editor-back-button p-3 bg-zinc-900 rounded-2xl active:scale-95 transition-transform outline-none border-none">
           <ArrowLeftIcon aria-hidden="true" />
         </button>
         <h2 className="text-2xl font-black">{initialData ? 'Edit Card' : 'New Card'}</h2>
@@ -87,64 +101,20 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
         {/* Private Toggle */}
         <div
           onClick={handlePrivateToggle}
-          className={`flex items-center justify-between px-5 py-4 rounded-2xl border cursor-pointer transition-all ${
+          className={`flex items-center justify-center gap-3 px-5 py-4 rounded-2xl border cursor-pointer transition-all ${
             isPrivate
               ? 'border-transparent'
               : 'bg-zinc-900 border-zinc-800'
           }`}
           style={isPrivate ? { backgroundColor: accentColor } : {}}
         >
-          <div className="flex items-center gap-3">
-            <div className={isPrivate ? 'text-black' : 'text-zinc-500'}>
-              <LockIcon />
-            </div>
-            <div>
-              <p className={`font-black text-sm ${isPrivate ? 'text-black' : 'text-white'}`}>Private Information</p>
-              <p className={`text-[10px] font-bold uppercase tracking-widest ${isPrivate ? 'text-black/60' : 'text-zinc-600'}`}>
-                {isPrivate ? 'Requires passcode to view' : 'Tap to mark as private'}
-              </p>
-            </div>
+          <div className={`flex-shrink-0 ${isPrivate ? 'text-black' : 'text-zinc-400'}`}>
+            <LockIcon />
           </div>
-          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-            isPrivate ? 'border-black bg-black' : 'border-zinc-700'
-          }`}>
-            {isPrivate && <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: accentColor }} />}
-          </div>
+          <p className="font-black text-sm" style={{ color: isPrivate ? '#000000' : undefined }}>
+            {isPrivate ? 'Card is Locked' : 'Lock This Card'}
+          </p>
         </div>
-
-        {/* Passcode Gate */}
-        {showPasscodeGate && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-4 animate-in fade-in zoom-in duration-200">
-            <p className="text-sm font-black text-center">Enter passcode to mark as private</p>
-            <input
-              type="password"
-              inputMode="numeric"
-              maxLength={6}
-              autoFocus
-              value={passcodeInput}
-              onChange={(e) => { setPasscodeInput(e.target.value.replace(/\D/g, '')); setPasscodeError(false); }}
-              placeholder="6 digits"
-              className={`w-full bg-black border rounded-xl h-12 px-4 text-center font-black text-lg tracking-[0.5em] focus:outline-none ${
-                passcodeError ? 'border-red-500' : 'border-zinc-700'
-              }`}
-            />
-            {passcodeError && <p className="text-red-500 text-xs font-bold text-center">Incorrect passcode</p>}
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => { setShowPasscodeGate(false); setPasscodeInput(''); setPasscodeError(false); }}
-                className="flex-1 h-10 bg-zinc-800 rounded-xl font-bold text-xs"
-              >Cancel</button>
-              <button
-                type="button"
-                onClick={handlePasscodeSubmit}
-                disabled={passcodeInput.length !== 6}
-                className="flex-1 h-10 rounded-xl font-black text-xs text-black disabled:opacity-30"
-                style={{ backgroundColor: accentColor }}
-              >Confirm</button>
-            </div>
-          </div>
-        )}
 
         {/* Category — hidden if private */}
         {!isPrivate && (
@@ -156,8 +126,8 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
                   key={cat}
                   type="button"
                   onClick={() => setCategory(cat)}
-                  className={`py-4 rounded-2xl font-bold text-sm transition-all border truncate px-2 ${
-                    category === cat ? 'text-black' : 'bg-zinc-900 text-zinc-400 border-zinc-800'
+                  className={`card-category-option py-4 rounded-2xl font-bold text-sm transition-all border truncate px-2 ${
+                    category === cat ? 'is-selected' : 'bg-zinc-900 border-zinc-800'
                   }`}
                   style={category === cat ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                 >
@@ -170,7 +140,7 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
 
         {/* Title */}
         <div>
-          <label className="block text-zinc-500 text-xs font-black uppercase tracking-widest mb-2">Card Title</label>
+          <label className="block text-zinc-500 text-xs font-black uppercase tracking-widest mb-2">Card Name</label>
           <input
             autoFocus
             value={title}
@@ -182,63 +152,72 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
         </div>
 
         {/* Content */}
-        <div className="relative">
-          <label className="block text-zinc-500 text-xs font-black uppercase tracking-widest mb-2">Display Message</label>
-          <div className="relative">
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="What should it say in huge letters?"
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-3xl p-6 pb-16 text-white font-bold outline-none min-h-220px focus:ring-2 transition-all resize-none"
-              style={{ '--tw-ring-color': accentColor } as any}
-            />
-
-            {/* Smart Assist Button */}
-            <div className="absolute bottom-4 right-4 flex items-center">
-              {isAiMenuOpen && (
-                <div className="absolute bottom-full right-0 mb-3 bg-zinc-800 border border-zinc-700 rounded-2xl p-2 shadow-2xl flex flex-col gap-1 min-w-140px animate-in slide-in-from-bottom-2 fade-in duration-200">
-                  <button type="button" onClick={() => handleRewrite('professional')} className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-700 text-sm font-bold transition-colors flex items-center justify-between">
-                    Professional
-                    <span className="text-[8px] bg-zinc-900 px-1.5 py-0.5 rounded text-zinc-500">FORMAL</span>
-                  </button>
-                  <button type="button" onClick={() => handleRewrite('casual')} className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-700 text-sm font-bold transition-colors flex items-center justify-between">
-                    Casual
-                    <span className="text-[8px] bg-zinc-900 px-1.5 py-0.5 rounded text-zinc-500">FRIENDLY</span>
-                  </button>
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={() => setIsAiMenuOpen(!isAiMenuOpen)}
-                disabled={isRewriting || !content.trim()}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-lg active:scale-90 disabled:opacity-30 disabled:grayscale ${
-                  isAiMenuOpen ? 'bg-white text-black' : 'bg-zinc-800 text-white'
-                }`}
-                style={!isAiMenuOpen ? { color: accentColor } : {}}
-                title="Smart Rewrite"
-              >
-                {isRewriting ? (
-                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <SparklesIcon />
-                )}
-              </button>
-            </div>
-          </div>
-          <p className="text-[10px] text-zinc-600 mt-2 font-bold uppercase tracking-wider px-2 italic">
-            Tip: Use Smart Rewrite to refine your message tone.
-          </p>
+        <div>
+          <label className="block text-zinc-500 text-xs font-black uppercase tracking-widest mb-2">Message to Show</label>
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="What should it say in huge letters?"
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-white font-bold outline-none min-h-220px focus:ring-2 transition-all resize-none"
+            style={{ '--tw-ring-color': accentColor } as any}
+          />
         </div>
 
         <button
           type="submit"
-          disabled={!title || !content || isRewriting || showPasscodeGate}
+          disabled={!title || !content || showPasscodeGate}
           className="w-full h-14 text-black rounded-2xl font-black text-base active:scale-95 transition-transform disabled:opacity-50 shadow-xl"
           style={{ backgroundColor: accentColor, boxShadow: `0 10px 30px ${accentColor}33` }}
         >
-          {isRewriting ? 'REWRITING...' : 'SAVE CARD'}
+          SAVE CARD
         </button>
       </form>
+
+      {showPasscodeGate && (
+        <PasscodeModal
+          key={newPasscodeDraft === null ? 'create-passcode' : 'confirm-passcode'}
+          title={newPasscodeDraft === null ? 'Create PIN' : 'Confirm PIN'}
+          accentColor={accentColor}
+          onVerify={handleNewPasscode}
+          onClose={() => {
+            setShowPasscodeGate(false);
+            setNewPasscodeDraft(null);
+          }}
+        />
+      )}
+
+      {showUnsavedPrompt && (
+        <div className="fixed inset-0 z-80 flex items-center justify-center bg-black/70 backdrop-blur-sm px-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 w-full max-w-sm space-y-4">
+            <h3 className="font-black text-lg text-center">Save Before Leaving?</h3>
+            <p className="text-zinc-400 text-sm text-center">You have unsaved changes. Save your card before leaving?</p>
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                onClick={handleSaveAndClose}
+                disabled={!title || !content}
+                className="w-full h-12 rounded-2xl font-black text-sm active:scale-95 transition-all disabled:opacity-40"
+                style={{ backgroundColor: accentColor, color: 'black', border: 'none', borderWidth: 0 }}
+              >
+                SAVE CARD
+              </button>
+              <button
+                onClick={onClose}
+                className="w-full h-12 rounded-2xl font-black text-sm active:scale-95 transition-all"
+                style={{ backgroundColor: '#ef4444', color: '#ffffff', border: 'none' }}
+              >
+                CANCEL
+              </button>
+              <button
+                onClick={() => setShowUnsavedPrompt(false)}
+                className="w-full h-12 font-black text-sm border-2 border-zinc-700 rounded-2xl active:scale-95 transition-all"
+                style={{ color: '#000000', border: 'none' }}
+              >
+                Continue Editing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

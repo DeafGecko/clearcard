@@ -65,10 +65,17 @@ const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ card, onClose, onEd
     }
   };
 
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.clientY <= 120 && !showUI) {
+      resetHideTimer();
+    }
+  };
+
   return (
     <div 
       className="fixed inset-0 bg-black z-[100] flex flex-col overflow-hidden animate-in fade-in duration-300"
       onClick={handleBackgroundClick}
+      onMouseMove={handleMouseMove}
     >
       {/* Top Header Overlay - Fades out completely including gradient background */}
       <div 
@@ -78,26 +85,25 @@ const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ card, onClose, onEd
       >
         <button 
           onClick={(e) => { e.stopPropagation(); onClose(); }} 
-          className="w-12 h-12 rounded-2xl bg-zinc-900/80 backdrop-blur-md flex items-center justify-center active:scale-90 transition-transform"
+          className="fullscreen-top-control w-12 h-12 text-white flex items-center justify-center active:scale-90 transition-transform"
           aria-label="Close"
         >
-          <ArrowLeftIcon />
+          <ArrowLeftIcon size={28} />
         </button>
         <div className="flex gap-2">
           <button 
             onClick={(e) => { e.stopPropagation(); onEdit(card); }} 
-            className="w-12 h-12 rounded-2xl bg-zinc-900/80 backdrop-blur-md flex items-center justify-center active:scale-90 transition-transform text-zinc-400"
+            className="fullscreen-top-control w-12 h-12 text-white flex items-center justify-center active:scale-90 transition-transform"
             aria-label="Edit"
           >
-            <EditIcon />
+            <EditIcon size={28} />
           </button>
           <button 
             onClick={handleFlip} 
-            className="w-12 h-12 rounded-2xl bg-zinc-900/80 backdrop-blur-md flex items-center justify-center active:scale-90 transition-transform"
-            style={{ color: accentColor }}
+            className="fullscreen-top-control w-12 h-12 text-white flex items-center justify-center active:scale-90 transition-transform"
             aria-label="Flip text"
           >
-            <FlipIcon />
+            <FlipIcon size={28} />
           </button>
         </div>
       </div>

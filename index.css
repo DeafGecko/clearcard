@@ -1,5 +1,509 @@
 @import "tailwindcss";
 
+:root {
+	--theme-background: #ffffff;
+	--theme-foreground: #000000;
+	--theme-surface: #ffffff;
+	--theme-signal: #000000;
+	--theme-outline: #8a8a8a;
+}
+
+html,
+body,
+#root {
+	min-height: 100%;
+	background: var(--theme-background);
+}
+
+.app-shell {
+	--ui-body-size: 18px;
+	--ui-card-title-size: 24px;
+	--ui-card-min-height: 68px;
+	--ui-control-min-height: 60px;
+	--ui-keypad-size: 80px;
+	--ui-keypad-number-size: 36px;
+	--ui-keypad-gap: 16px;
+	background: var(--theme-background);
+	color: var(--theme-foreground);
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	height: 100dvh;
+	overflow: hidden;
+	font-family: "Atkinson Hyperlegible", "Helvetica Neue", sans-serif;
+	font-size: var(--ui-body-size);
+	font-weight: 700;
+}
+
+.app-card-scroll {
+	overscroll-behavior-y: contain;
+}
+
+.app-shell[data-display-size="compact"] {
+	--ui-body-size: 16px;
+	--ui-card-title-size: 21px;
+	--ui-card-min-height: 60px;
+	--ui-control-min-height: 52px;
+	--ui-keypad-size: 68px;
+	--ui-keypad-number-size: 30px;
+	--ui-keypad-gap: 12px;
+}
+
+.app-shell[data-display-size="enlarged"] {
+	--ui-body-size: 20px;
+	--ui-card-title-size: 28px;
+	--ui-card-min-height: 84px;
+	--ui-control-min-height: 68px;
+	--ui-keypad-size: 92px;
+	--ui-keypad-number-size: 44px;
+	--ui-keypad-gap: 18px;
+}
+
+.app-shell :is(p, span, label, button, input, textarea, select) {
+	font-size: var(--ui-body-size) !important;
+	font-weight: 700;
+	letter-spacing: 0 !important;
+}
+
+.app-shell .brand-motto {
+	font-size: 14px !important;
+	font-family: Inter, "Atkinson Hyperlegible", sans-serif;
+	font-weight: 400;
+	letter-spacing: 0.04em !important;
+	line-height: 1.2;
+}
+
+.app-shell[data-theme="light"] .brand-motto {
+	color: #595959 !important;
+}
+
+.app-shell[data-theme="dark"] .brand-motto {
+	color: #b8b8b3 !important;
+}
+
+.app-shell[data-theme="dark"] {
+	--theme-background: #121212;
+	--theme-foreground: #f1f1ed;
+	--theme-surface: #1b1b1b;
+	--theme-signal: #f2cf4a;
+	--theme-outline: #666666;
+}
+
+.app-shell[data-theme="highContrast"] {
+	--theme-background: #000000;
+	--theme-foreground: #ffef00;
+	--theme-surface: #000000;
+	--theme-signal: #ffef00;
+	--theme-outline: #767676;
+}
+
+.app-shell[data-theme="highContrast"] .brand-motto {
+	color: #a3a3a3 !important;
+}
+
+.app-header,
+.app-nav,
+.app-toolbar {
+	background: var(--theme-background);
+	border-color: var(--theme-outline);
+	border-style: solid;
+}
+
+.app-header {
+	border-width: 0;
+}
+
+.mobile-header-menu {
+	background: var(--theme-surface);
+	border: 2px solid var(--theme-outline);
+}
+
+.mobile-header-menu-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	min-height: var(--ui-control-min-height);
+	padding: 10px 14px;
+	border: 0;
+	border-radius: 8px;
+	color: var(--theme-foreground);
+	text-align: left;
+}
+
+.mobile-header-menu-item:active {
+	background: var(--theme-signal);
+	color: var(--theme-background);
+}
+
+.app-toolbar {
+	border-color: #383838;
+	border-width: 2px 0 0;
+}
+
+.app-shell[data-theme="light"] .app-toolbar {
+	border-color: var(--theme-outline);
+}
+
+.app-shell .app-toolbar button {
+	border: 0;
+}
+
+.app-card {
+	background: var(--theme-surface);
+	border: 2px solid var(--theme-outline);
+	min-height: var(--ui-card-min-height);
+}
+
+.app-card h3 {
+	font-size: var(--ui-card-title-size) !important;
+}
+
+@media (hover: hover) {
+	.app-shell[data-theme="light"] .app-card:hover h3 {
+		color: color-mix(in srgb, var(--accent-color) 45%, #000000);
+	}
+}
+
+.app-card:active {
+	background: var(--theme-signal);
+	color: var(--theme-background);
+}
+
+.app-card button {
+	border: 0;
+}
+
+.swipe-actions button {
+	border: 0;
+}
+
+@media (max-width: 1024px) {
+	.swipe-actions {
+		display: flex;
+	}
+
+	.swipe-card-content[data-open="true"] {
+		transform: translateX(-168px);
+	}
+
+	.desktop-card-actions {
+		display: none;
+	}
+}
+
+@media (min-width: 1025px) {
+	.card-copy {
+		padding-right: 8rem;
+	}
+}
+
+.app-shell .header-utility {
+	border: 0;
+}
+
+.app-shell .settings-close {
+	width: 60px;
+	height: 60px;
+	background: transparent;
+	border: 0;
+}
+
+.app-shell .editor-back-button {
+	border: 0;
+}
+
+.app-shell .card-category-option {
+	color: var(--theme-foreground);
+	font-family: "Atkinson Hyperlegible", "Helvetica Neue", sans-serif;
+}
+
+.app-shell .card-category-option.is-selected {
+	color: #000000;
+}
+
+.app-shell[data-theme="light"] .settings-close {
+	color: #000000;
+}
+
+.settings-panel {
+	animation: settings-slide-in 550ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.settings-panel.is-closing {
+	animation: settings-slide-out 550ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.settings-overlay.is-closing {
+	animation: settings-fade-out 550ms ease both;
+}
+
+.settings-unsaved-dialog {
+	background: var(--theme-surface);
+	border: 2px solid var(--theme-outline);
+	color: var(--theme-foreground);
+}
+
+.settings-unsaved-dialog[data-theme="light"] {
+	--theme-surface: #ffffff;
+	--theme-foreground: #000000;
+	--theme-outline: #8a8a8a;
+}
+
+.settings-unsaved-dialog[data-theme="dark"] {
+	--theme-surface: #1b1b1b;
+	--theme-foreground: #f1f1ed;
+	--theme-outline: #666666;
+}
+
+.settings-unsaved-dialog[data-theme="highContrast"] {
+	--theme-surface: #000000;
+	--theme-foreground: #ffef00;
+	--theme-outline: #767676;
+}
+
+.settings-unsaved-copy {
+	color: var(--theme-foreground);
+	opacity: 0.72;
+}
+
+.app-shell .settings-unsaved-continue {
+	background: var(--theme-surface);
+	border: 2px solid var(--theme-outline);
+	color: var(--theme-foreground);
+}
+
+@keyframes settings-slide-in {
+	from { transform: translateX(100%); }
+	to   { transform: translateX(0); }
+}
+
+@keyframes settings-slide-out {
+	from { transform: translateX(0); }
+	to   { transform: translateX(100%); }
+}
+
+@keyframes settings-fade-out {
+	from { opacity: 1; }
+	to   { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.settings-panel,
+	.settings-panel.is-closing {
+		animation: none;
+	}
+}
+
+.app-shell .accent-swatch {
+	width: 60px;
+	height: 60px;
+	min-height: 60px;
+	border-radius: 9999px;
+}
+
+.theme-page,
+.app-shell [class*="bg-zinc-"] {
+	background-color: var(--theme-surface);
+}
+
+.app-shell [class*="border-zinc-"] {
+	border-color: var(--theme-outline);
+}
+
+.app-shell button,
+.app-shell input,
+.app-shell textarea,
+.app-shell select {
+	border-width: 2px;
+	border-color: var(--theme-outline);
+}
+
+.app-shell button[style*="background"] {
+	border-width: 0 !important;
+}
+
+.app-shell button {
+	min-height: var(--ui-control-min-height);
+}
+
+.app-shell .fullscreen-top-control {
+	background: rgb(255 255 255 / 15%);
+	border: 0;
+	border-radius: 8px;
+}
+
+.passcode-keypad {
+	gap: var(--ui-keypad-gap);
+	justify-items: center;
+}
+
+.passcode-modal,
+.passcode-modal button {
+	font-family: Inter, sans-serif;
+}
+
+.app-shell .passcode-key {
+	width: var(--ui-keypad-size);
+	height: var(--ui-keypad-size);
+	font-size: var(--ui-keypad-number-size) !important;
+}
+
+.app-shell .passcode-key:active {
+	background: #facc15;
+	color: #000000;
+	transform: scale(0.94);
+}
+
+.app-nav button {
+	height: auto !important;
+	min-height: var(--ui-control-min-height) !important;
+}
+
+.app-nav .nav-primary-button {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	min-width: 60px;
+	padding: 12px 24px;
+	border: 0;
+	border-radius: 8px;
+	font-weight: 900;
+	transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.app-nav .nav-primary-button.is-active {
+	transform: scale(1.05);
+	box-shadow: 0 0 0 2px var(--theme-background), 0 0 0 4px currentColor;
+}
+
+.app-nav .nav-emergency-button {
+	width: 60px;
+	padding-inline: 0;
+	background: #e53935;
+	color: #ffffff;
+}
+
+.app-nav .nav-all-button {
+	background: var(--nav-button-color);
+	color: #000000;
+}
+
+.app-nav .nav-category-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 12px 24px;
+	border: 2px solid var(--theme-outline);
+	border-radius: 8px;
+	background: var(--theme-surface);
+	color: var(--theme-foreground);
+	font-weight: 900;
+	transition: background-color 160ms ease, color 160ms ease;
+}
+
+.app-nav .nav-category-button.is-active {
+	color: #000000;
+}
+
+.app-nav .nav-modify-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 12px 20px;
+	border: 2px solid var(--theme-outline);
+	border-radius: 8px;
+	background: var(--theme-surface);
+	font-weight: 900;
+	text-transform: uppercase;
+	transition: transform 160ms ease;
+}
+
+.app-nav .nav-modify-button:active {
+	transform: scale(0.95);
+}
+
+.display-size-option {
+	background: var(--theme-surface);
+	border: 2px solid var(--theme-outline);
+}
+
+.theme-mode-option {
+	display: flex;
+	min-width: 0;
+	min-height: 72px;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 8px 4px;
+	border: 2px solid var(--theme-outline);
+	border-radius: 8px;
+	background: var(--theme-surface);
+	color: var(--theme-foreground);
+}
+
+.app-shell .theme-mode-option span {
+	font-size: 14px !important;
+	line-height: 1.1;
+	text-align: center;
+}
+
+.theme-mode-option.is-selected,
+.display-size-option.is-selected {
+	border-color: transparent;
+}
+
+.app-shell input,
+.app-shell textarea,
+.app-shell select {
+	background: var(--theme-surface);
+	color: var(--theme-foreground);
+}
+
+.app-shell[data-theme="highContrast"] input,
+.app-shell[data-theme="highContrast"] textarea,
+.app-shell[data-theme="highContrast"] select {
+	caret-color: #ffef00;
+}
+
+.app-shell[data-theme="dark"] input,
+.app-shell[data-theme="dark"] textarea,
+.app-shell[data-theme="dark"] select {
+	caret-color: #f2cf4a;
+}
+
+.app-shell[data-theme="light"] .text-zinc-500,
+.app-shell[data-theme="light"] .text-zinc-600,
+.app-shell[data-theme="light"] .text-zinc-700 {
+	color: #000000;
+}
+
+.app-shell[data-theme="dark"] .text-zinc-500,
+.app-shell[data-theme="dark"] .text-zinc-600,
+.app-shell[data-theme="dark"] .text-zinc-700 {
+	color: #c4c4bf;
+}
+
+.app-shell[data-theme="highContrast"] .text-zinc-500,
+.app-shell[data-theme="highContrast"] .text-zinc-600,
+.app-shell[data-theme="highContrast"] .text-zinc-700 {
+	color: #ffef00;
+}
+
+.app-shell[data-theme="light"] .card-category {
+	color: #454545;
+}
+
+.app-shell[data-theme="dark"] .card-category {
+	color: #b8b8b3;
+}
+
+.app-shell[data-theme="highContrast"] .card-category {
+	color: #949494;
+}
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 

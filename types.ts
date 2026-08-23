@@ -1,4 +1,6 @@
 export type Category = string;
+export type DisplaySize = 'compact' | 'normal' | 'enlarged';
+export type ThemeMode = 'light' | 'dark' | 'highContrast';
 
 export const SystemCategories = {
   MEDICAL: 'Medical',
@@ -20,7 +22,8 @@ export interface VisioCard {
 
 export interface UserPreferences {
   fontSize: number;
-  highContrast: boolean;
+  displaySize: DisplaySize;
+  themeMode: ThemeMode;
   vaultLocked: boolean;
   accentColor: string;
   displayTextColor: string;
