@@ -73,13 +73,13 @@ const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ card, onClose, onEd
 
   return (
     <div 
-      className="fixed inset-0 bg-black z-[100] flex flex-col overflow-hidden animate-in fade-in duration-300"
+      className="fixed inset-0 bg-black z-100 flex flex-col overflow-hidden animate-in fade-in duration-300"
       onClick={handleBackgroundClick}
       onMouseMove={handleMouseMove}
     >
       {/* Top Header Overlay - Fades out completely including gradient background */}
       <div 
-        className={`absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-30 bg-gradient-to-b from-black via-black/80 to-transparent transition-all duration-700 ease-in-out ${
+        className={`absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-30 bg-linear-to-b from-black via-black/80 to-transparent transition-all duration-700 ease-in-out ${
           showUI ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10 pointer-events-none'
         }`}
       >
@@ -117,7 +117,7 @@ const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ card, onClose, onEd
             </div>
             <div className="text-center">
               <h2 className="text-2xl font-black mb-2 uppercase tracking-tight">Sensitive Info</h2>
-              <p className="text-zinc-500 font-bold text-sm max-w-[200px]">This card contains personal or medical details.</p>
+              <p className="text-zinc-500 font-bold text-sm max-w-50">This card contains personal or medical details.</p>
             </div>
             <button 
               onClick={handleReveal}
@@ -128,7 +128,7 @@ const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ card, onClose, onEd
           </div>
         ) : (
           <div 
-            className="w-full my-auto py-40 font-black text-center break-words leading-[1.15] tracking-tight whitespace-pre-wrap px-4"
+            className="w-full my-auto py-40 font-black text-center wrap-break-words leading-[1.15] tracking-tight whitespace-pre-wrap px-4"
             style={{ fontSize: `${fontSize}px`, color: displayTextColor }}
           >
             {card.content}
@@ -138,12 +138,12 @@ const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ card, onClose, onEd
 
       {/* Bottom Font Controller Overlay - Fades out completely including gradient background */}
       <div 
-        className={`absolute bottom-0 left-0 right-0 z-30 p-8 pb-10 bg-gradient-to-t from-black via-black/90 to-transparent flex flex-col items-center gap-3 transition-all duration-700 ease-in-out ${
+        className={`absolute bottom-0 left-0 right-0 z-30 p-8 pb-10 bg-linear-to-t from-black via-black/90 to-transparent flex flex-col items-center gap-3 transition-all duration-700 ease-in-out ${
           showUI ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
         }`}
       >
         <div 
-          className="flex items-center gap-5 w-full max-w-[300px] scale-90 sm:scale-100"
+          className="flex items-center gap-5 w-full max-w-75 scale-90 sm:scale-100"
           onClick={(e) => e.stopPropagation()}
         >
           <span className="text-[10px] font-black text-zinc-600 uppercase">A</span>

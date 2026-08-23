@@ -108,7 +108,7 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
           }`}
           style={isPrivate ? { backgroundColor: accentColor } : {}}
         >
-          <div className={`flex-shrink-0 ${isPrivate ? 'text-black' : 'text-zinc-400'}`}>
+          <div className={`shrink-0 ${isPrivate ? 'text-black' : 'text-zinc-400'}`}>
             <LockIcon />
           </div>
           <p className="font-black text-sm" style={{ color: isPrivate ? '#000000' : undefined }}>

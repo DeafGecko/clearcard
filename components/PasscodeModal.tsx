@@ -47,7 +47,7 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
   const numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
   return (
-    <div className="passcode-modal theme-page fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 animate-in fade-in duration-300">
+    <div className="passcode-modal theme-page fixed inset-0 z-100 flex flex-col items-center justify-center p-6 animate-in fade-in duration-300">
       <div className="w-full max-w-xs flex flex-col items-center">
         <button 
           onClick={onClose}

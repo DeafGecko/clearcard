@@ -67,7 +67,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
   const isCustomColor = !MODERN_COLORS.some(c => c.value === accent);
   return (
     <div className={`settings-overlay fixed inset-0 bg-black/80 backdrop-blur-sm z-110 flex justify-end overflow-hidden${isClosing ? ' is-closing' : ''}`} onClick={handleClose}>
-      <div className={`settings-panel bg-zinc-900 w-full max-w-[420px] h-full border-l border-zinc-800 shadow-2xl flex flex-col p-6 overflow-y-auto no-scrollbar${isClosing ? ' is-closing' : ''}`} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+      <div className={`settings-panel bg-zinc-900 w-full max-w-105 h-full border-l border-zinc-800 shadow-2xl flex flex-col p-6 overflow-y-auto no-scrollbar${isClosing ? ' is-closing' : ''}`} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
 
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl font-black">Settings</h2>
