@@ -445,9 +445,9 @@ const App: React.FC = () => {
                     }
                   >
                     <div className="card-copy flex-1 min-w-0">
-                      <h3 className="text-2xl font-bold truncate group-hover:text-(--accent-color) transition-colors">
+                      <h2 className="text-2xl font-bold truncate group-hover:text-(--accent-color) transition-colors">
                         {card.title}
-                      </h3>
+                      </h2>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span
                           className="card-category font-bold"

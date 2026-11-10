@@ -155,12 +155,12 @@ body,
 	min-height: var(--ui-card-min-height);
 }
 
-.app-card h3 {
+.app-card h2 {
 	font-size: var(--ui-card-title-size) !important;
 }
 
 @media (hover: hover) {
-	.app-shell[data-theme="light"] .app-card:hover h3 {
+	.app-shell[data-theme="light"] .app-card:hover h2 {
 		color: color-mix(in srgb, var(--accent-color) 45%, #000000);
 	}
 }

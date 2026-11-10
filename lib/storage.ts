@@ -111,27 +111,38 @@ const DEFAULT_PREFS: UserPreferences = {
   appLanguage: 'en',
 };
 
+// Reads and parses a stored value. Corrupt JSON or an unexpected shape returns
+// the fallback instead of throwing, so a bad value cannot crash the app.
+const readStored = <T>(key: string, fallback: T, isValid: (value: unknown) => boolean): T => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed: unknown = JSON.parse(raw);
+    return isValid(parsed) ? (parsed as T) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
 export const storage = {
-  getCards: (): VisioCard[] => {
-    const data = localStorage.getItem(CARDS_KEY);
-    return data ? JSON.parse(data) : DEFAULT_CARDS;
-  },
+  getCards: (): VisioCard[] =>
+    readStored(CARDS_KEY, DEFAULT_CARDS, Array.isArray),
   saveCards: (cards: VisioCard[]) => {
     localStorage.setItem(CARDS_KEY, JSON.stringify(cards));
   },
-  getCategories: (): Category[] => {
-    const data = localStorage.getItem(CATS_KEY);
-    return data ? JSON.parse(data) : DEFAULT_CATS;
-  },
+  getCategories: (): Category[] =>
+    readStored(CATS_KEY, DEFAULT_CATS, Array.isArray),
   saveCategories: (cats: Category[]) => {
     localStorage.setItem(CATS_KEY, JSON.stringify(cats));
   },
   getPrefs: (): UserPreferences => {
-    const data = localStorage.getItem(PREFS_KEY);
-    if (!data) return DEFAULT_PREFS;
+    const saved = readStored<Record<string, unknown> | null>(PREFS_KEY, null, isObject);
+    if (!saved) return DEFAULT_PREFS;
 
-    const saved = JSON.parse(data);
-    const themeMode = saved.themeMode || (saved.highContrast ? 'highContrast' : 'light');
+    const themeMode = (saved.themeMode as UserPreferences['themeMode']) || (saved.highContrast ? 'highContrast' : 'light');
     const { highContrast: _legacyHighContrast, ...currentPrefs } = saved;
     return { ...DEFAULT_PREFS, ...currentPrefs, themeMode };
   },

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeftIcon, CircleXIcon } from './Icons';
 
 interface PasscodeModalProps {
@@ -9,36 +9,108 @@ interface PasscodeModalProps {
   accentColor: string;
 }
 
+// Wrong codes are counted in localStorage so a lockout survives closing the
+// modal or reloading the page. After MAX_ATTEMPTS wrong codes, input is paused.
+const ATTEMPTS_KEY = 'visio_passcode_attempts';
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 60_000;
+
+interface AttemptState {
+  failures: number;
+  lockedUntil: number;
+}
+
+const readAttempts = (): AttemptState => {
+  try {
+    const raw = localStorage.getItem(ATTEMPTS_KEY);
+    if (!raw) return { failures: 0, lockedUntil: 0 };
+    const parsed = JSON.parse(raw) as Partial<AttemptState>;
+    return {
+      failures: Number(parsed.failures) || 0,
+      lockedUntil: Number(parsed.lockedUntil) || 0,
+    };
+  } catch {
+    return { failures: 0, lockedUntil: 0 };
+  }
+};
+
+const writeAttempts = (state: AttemptState) => {
+  try {
+    localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(state));
+  } catch {
+    // Storage can be unavailable (private mode, blocked site data). The in-memory lock still applies.
+  }
+};
+
+export const clearPasscodeAttempts = () => writeAttempts({ failures: 0, lockedUntil: 0 });
+
+// Whole seconds left in the current lockout, or 0 when input is allowed.
+export const getPasscodeLockSeconds = (): number => {
+  const { lockedUntil } = readAttempts();
+  return Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000));
+};
+
+// Counts one wrong code and starts a lockout after MAX_ATTEMPTS.
+export const recordPasscodeFailure = (): AttemptState => {
+  const failures = readAttempts().failures + 1;
+  const next: AttemptState =
+    failures >= MAX_ATTEMPTS
+      ? { failures: 0, lockedUntil: Date.now() + LOCKOUT_MS }
+      : { failures, lockedUntil: 0 };
+  writeAttempts(next);
+  return next;
+};
+
 const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title = "Enter Secret Code", accentColor }) => {
   const [code, setCode] = useState('');
   const [error, setError] = useState(false);
+  const [attempts, setAttempts] = useState<AttemptState>(readAttempts);
+  const [now, setNow] = useState(() => Date.now());
+
+  const lockedUntil = attempts.lockedUntil;
+  const isLocked = lockedUntil > now;
+  const secondsLeft = Math.max(0, Math.ceil((lockedUntil - now) / 1000));
+
+  // Re-check the clock once a second while locked so the countdown updates and the lock ends on time.
+  useEffect(() => {
+    if (!isLocked) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [isLocked]);
 
   const triggerHaptic = (ms: number | number[] = 10) => {
     if ('vibrate' in navigator) navigator.vibrate(ms);
   };
 
   const handleNumber = (num: string) => {
-    if (code.length < 6) {
-      triggerHaptic(10);
-      const newCode = code + num;
-      setCode(newCode);
-      setError(false);
-      
-      if (newCode.length === 6) {
-        setTimeout(() => {
-          if (onVerify(newCode)) {
-            triggerHaptic(50);
-          } else {
-            triggerHaptic([50, 50, 50]);
-            setError(true);
-            setCode('');
-          }
-        }, 150);
-      }
+    if (isLocked || code.length >= 6) return;
+
+    triggerHaptic(10);
+    const newCode = code + num;
+    setCode(newCode);
+    setError(false);
+
+    if (newCode.length === 6) {
+      setTimeout(() => {
+        if (onVerify(newCode)) {
+          triggerHaptic(50);
+          clearPasscodeAttempts();
+          setAttempts({ failures: 0, lockedUntil: 0 });
+          return;
+        }
+
+        triggerHaptic([50, 50, 50]);
+        const next = recordPasscodeFailure();
+        setAttempts(next);
+        setNow(Date.now());
+        setError(true);
+        setCode('');
+      }, 150);
     }
   };
 
   const handleDelete = () => {
+    if (isLocked) return;
     triggerHaptic(10);
     setCode(code.slice(0, -1));
     setError(false);
@@ -46,31 +118,38 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
 
   const numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
+  const heading = isLocked ? 'Too many tries' : error ? 'Wrong Code' : title;
+
   return (
     <div
       className="passcode-modal theme-page fixed inset-0 z-100 flex flex-col items-center justify-center p-6 animate-in fade-in duration-300"
       style={{ '--passcode-accent': accentColor } as React.CSSProperties}
     >
       <div className="w-full max-w-xs flex flex-col items-center">
-        <button 
+        <button
           onClick={onClose}
           className="passcode-back-button absolute top-10 left-6 p-3 bg-zinc-900 rounded-2xl active:scale-90 transition-transform"
         >
           <ArrowLeftIcon />
         </button>
 
-        <h2 className={`text-xl font-black mb-8 uppercase tracking-widest transition-colors ${error ? 'text-red-500' : 'text-zinc-500'}`}>
-          {error ? 'Wrong Code' : title}
+        <h2 className={`text-xl font-black mb-2 uppercase tracking-widest transition-colors ${error || isLocked ? 'text-red-500' : 'text-zinc-500'}`}>
+          {heading}
         </h2>
+        {isLocked && (
+          <p role="status" className="text-sm font-bold text-zinc-500 mb-6">
+            Try again in {secondsLeft} seconds.
+          </p>
+        )}
 
         {/* Code Visualizer */}
         <div className={`flex gap-4 mb-12 ${error ? 'animate-bounce' : ''}`}>
           {[...Array(6)].map((_, i) => (
-            <div 
+            <div
               key={i}
               className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${
-                i < code.length 
-                  ? 'scale-125' 
+                i < code.length
+                  ? 'scale-125'
                   : 'bg-transparent border-zinc-800'
               }`}
               style={i < code.length ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
@@ -79,11 +158,12 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
         </div>
 
         {/* Numeric Keypad */}
-        <div className="passcode-keypad grid grid-cols-3 w-full">
+        <div className={`passcode-keypad grid grid-cols-3 w-full ${isLocked ? 'opacity-40 pointer-events-none' : ''}`}>
           {numbers.map(num => (
             <button
               key={num}
               onClick={() => handleNumber(num)}
+              disabled={isLocked}
               className="passcode-key rounded-full bg-zinc-900 flex items-center justify-center font-black transition-colors"
             >
               {num}
@@ -92,12 +172,14 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
           <div /> {/* Spacer */}
           <button
             onClick={() => handleNumber('0')}
+            disabled={isLocked}
             className="passcode-key rounded-full bg-zinc-900 flex items-center justify-center font-black transition-colors"
           >
             0
           </button>
           <button
             onClick={handleDelete}
+            disabled={isLocked}
             className="passcode-key rounded-full bg-zinc-900 flex items-center justify-center text-zinc-500 active:text-red-500 transition-colors"
             aria-label="Delete last digit"
           >

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Contrast, Moon, Sun, X } from 'lucide-react';
 import { DisplaySize, ThemeMode, UserPreferences } from '../types';
 import { LockIcon, CirclePlusIcon } from './Icons';
+import { clearPasscodeAttempts, getPasscodeLockSeconds, recordPasscodeFailure } from './PasscodeModal';
 
 interface SettingsModalProps {
   prefs: UserPreferences;
@@ -26,6 +27,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
   const [newPasscode, setNewPasscode] = useState(prefs.passcode);
   const [isChangingPasscode, setIsChangingPasscode] = useState(false);
   const [passcodeInput, setPasscodeInput] = useState("");
+  // Changing an existing code first needs the current one. A new code needs no check.
+  const [passcodeVerified, setPasscodeVerified] = useState(false);
+  const [passcodeError, setPasscodeError] = useState("");
   const [showUnsavedPrompt, setShowUnsavedPrompt] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const colorInputRef = useRef<HTMLInputElement>(null);
@@ -54,11 +58,42 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
     }
   };
 
-  const handleUpdatePasscode = () => {
-    if (passcodeInput.length === 6) {
-      setNewPasscode(passcodeInput);
-      setIsChangingPasscode(false);
+  const startChangingPasscode = () => {
+    setIsChangingPasscode(true);
+    setPasscodeInput("");
+    setPasscodeError("");
+    setPasscodeVerified(!prefs.passcode);
+  };
+
+  const cancelChangingPasscode = () => {
+    setIsChangingPasscode(false);
+    setPasscodeInput("");
+    setPasscodeError("");
+    setPasscodeVerified(false);
+  };
+
+  const handleVerifyCurrentPasscode = () => {
+    const lockSeconds = getPasscodeLockSeconds();
+    if (lockSeconds > 0) {
+      setPasscodeError(`Too many tries. Try again in ${lockSeconds} seconds.`);
       setPasscodeInput("");
+      return;
+    }
+    if (passcodeInput === prefs.passcode) {
+      clearPasscodeAttempts();
+      setPasscodeVerified(true);
+      setPasscodeError("");
+    } else {
+      recordPasscodeFailure();
+      setPasscodeError("Current code is incorrect.");
+    }
+    setPasscodeInput("");
+  };
+
+  const handleUpdatePasscode = () => {
+    if (passcodeInput.length === 6 && passcodeVerified) {
+      setNewPasscode(passcodeInput);
+      cancelChangingPasscode();
     }
   };
 
@@ -174,15 +209,28 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                   <h3 className="font-bold">Passcode</h3>
                 </div>
                 {!isChangingPasscode && (
-                  <button onClick={() => setIsChangingPasscode(true)} className="font-black uppercase tracking-widest px-4 py-2 rounded-xl outline-none" style={{ color: '#000000', backgroundColor: accent, border: 'none', borderWidth: 0 }}>CHANGE</button>
+                  <button onClick={startChangingPasscode} className="font-black uppercase tracking-widest px-4 py-2 rounded-xl outline-none" style={{ color: '#000000', backgroundColor: accent, border: 'none', borderWidth: 0 }}>CHANGE</button>
                 )}
               </div>
               {isChangingPasscode ? (
                 <div className="space-y-3">
-                  <input type="password" inputMode="numeric" maxLength={6} autoFocus value={passcodeInput} onChange={(e) => setPasscodeInput(e.target.value.replace(/\D/g, ""))} placeholder="6 digits" className="w-full bg-black border border-zinc-800 rounded-xl h-10 px-4 text-center font-black text-lg tracking-[0.5em] focus:outline-none" />
+                  {!passcodeVerified && (
+                    <p className="text-xs font-bold text-zinc-500">Enter your current Secret Code to change it.</p>
+                  )}
+                  <label className="block">
+                    <span className="sr-only">{passcodeVerified ? "New Secret Code" : "Current Secret Code"}</span>
+                    <input type="password" inputMode="numeric" maxLength={6} autoFocus value={passcodeInput} onChange={(e) => setPasscodeInput(e.target.value.replace(/\D/g, ""))} placeholder={passcodeVerified ? "New 6 digits" : "Current 6 digits"} className="w-full bg-black border border-zinc-800 rounded-xl h-10 px-4 text-center font-black text-lg tracking-[0.5em] focus:outline-none" />
+                  </label>
+                  {passcodeError && (
+                    <p role="alert" className="text-xs font-bold text-red-500">{passcodeError}</p>
+                  )}
                   <div className="flex gap-2">
-                    <button onClick={() => { setIsChangingPasscode(false); setPasscodeInput(""); }} className="flex-1 h-9 bg-zinc-900 rounded-lg font-bold text-[10px]">Cancel</button>
-                    <button onClick={handleUpdatePasscode} disabled={passcodeInput.length !== 6} className="flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30" style={{ backgroundColor: accent, color: "black" }}>Set</button>
+                    <button onClick={cancelChangingPasscode} className="flex-1 h-9 bg-zinc-900 rounded-lg font-bold text-[10px]">Cancel</button>
+                    {passcodeVerified ? (
+                      <button onClick={handleUpdatePasscode} disabled={passcodeInput.length !== 6} className="flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30" style={{ backgroundColor: accent, color: "black" }}>Set</button>
+                    ) : (
+                      <button onClick={handleVerifyCurrentPasscode} disabled={passcodeInput.length !== 6} className="flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30" style={{ backgroundColor: accent, color: "black" }}>Continue</button>
+                    )}
                   </div>
                 </div>
               ) : (

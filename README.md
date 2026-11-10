@@ -107,6 +107,21 @@ npm run dev
 
 Vite is configured for `http://localhost:3000`. If that port is occupied, Vite selects another available port and prints the URL in the terminal.
 
+### Tests
+
+```bash
+npm test
+```
+
+Tests use Vitest with jsdom and Testing Library, and live in `test/`. They cover:
+
+- `lib/storage.ts`: defaults, saving and loading, and the legacy high-contrast migration
+- `api/grammar.ts`: method, input, and API-key checks, and that the key is never returned to the client
+- `PasscodeModal` and `SettingsModal`: keypad input, live display size and theme saving
+- `App`: first-run cards, category filtering, the Vault staying hidden, and opening a card
+
+Known security and robustness gaps are written as `it.fails` tests. They pass while the gap exists and should be changed to normal `it` tests when fixed. These include no lockout on Secret Code attempts, no current-code check when changing it, no length limit on the grammar API, and crashes on corrupt saved data.
+
 ### Production Build
 
 ```bash
@@ -132,7 +147,7 @@ There is no recovery for a forgotten Secret Code. Settings lets anyone with acce
 - Data does not synchronize between browsers or devices.
 - There is no export or import workflow yet.
 - The app is not currently packaged as an installable PWA.
-- Automated unit and end-to-end test coverage still needs to be added.
+- End-to-end browser tests are not yet in the project; the unit and component tests run with Vitest.
 - The Secret Code can be changed without knowing the current code, and it cannot be recovered if forgotten.
 - The repository includes grammar service code, but Smart Rewrite is not exposed in the current card editor UI.
 

@@ -1,33 +1,47 @@
 export const config = { runtime: 'edge' };
 
+// Card text is short. These limits stop large requests from running up API cost.
+const MAX_TEXT_LENGTH = 2000;
+const MAX_INSTRUCTION_LENGTH = 500;
+
+const json = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
 export default async function handler(req: Request) {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
   }
 
   try {
-    const { text, tone, instruction } = await req.json();
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return json(400, { error: 'Invalid JSON' });
+    }
 
-    if (!text || text.trim().length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'No text provided' }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+    const { text, instruction } = (body ?? {}) as { text?: unknown; instruction?: unknown };
+
+    if (typeof text !== 'string' || text.trim().length === 0) {
+      return json(400, { error: 'No text provided' });
+    }
+    if (text.length > MAX_TEXT_LENGTH) {
+      return json(413, { error: 'Text is too long' });
+    }
+    if (instruction !== undefined && typeof instruction !== 'string') {
+      return json(400, { error: 'Instruction must be text' });
+    }
+    if (typeof instruction === 'string' && instruction.length > MAX_INSTRUCTION_LENGTH) {
+      return json(413, { error: 'Instruction is too long' });
     }
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
 
     if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: 'API not configured' }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+      return json(500, { error: 'API not configured' });
     }
 
     const prompt = instruction
@@ -40,59 +54,32 @@ ${text}`
 Text to fix:
 ${text}`;
 
-    const response = await fetch(
-      'https://api.anthropic.com/v1/messages',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1024,
-          messages: [
-            {
-              role: 'user',
-              content: prompt,
-            }
-          ]
-        })
-      }
-    );
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
 
     if (!response.ok) {
       const err = await response.text();
       console.error('Anthropic error:', err);
-      return new Response(
-        JSON.stringify({ error: 'AI request failed' }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+      return json(500, { error: 'AI request failed' });
     }
 
     const data = await response.json();
     const corrected = data.content?.[0]?.text ?? text;
 
-    return new Response(
-      JSON.stringify({ corrected }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-
+    return json(200, { corrected });
   } catch (err) {
     console.error('Grammar API error:', err);
-    return new Response(
-      JSON.stringify({ error: 'Something went wrong' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    return json(500, { error: 'Something went wrong' });
   }
 }
