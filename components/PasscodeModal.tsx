@@ -7,6 +7,8 @@ interface PasscodeModalProps {
   onClose: () => void;
   title?: string;
   accentColor: string;
+  // When provided, shows a way to recover a forgotten code with the recovery key.
+  onForgot?: () => void;
 }
 
 // Wrong codes are counted in localStorage so a lockout survives closing the
@@ -61,7 +63,7 @@ export const recordPasscodeFailure = (): AttemptState => {
   return next;
 };
 
-const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title = "Enter Secret Code", accentColor }) => {
+const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title = "Enter Secret Code", accentColor, onForgot }) => {
   const [code, setCode] = useState('');
   const [error, setError] = useState(false);
   const [attempts, setAttempts] = useState<AttemptState>(readAttempts);
@@ -186,6 +188,16 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
             <CircleXIcon />
           </button>
         </div>
+
+        {onForgot && (
+          <button
+            type="button"
+            onClick={onForgot}
+            className="mt-6 px-4 py-2 text-sm font-black uppercase tracking-widest underline underline-offset-4"
+          >
+            Forgot code?
+          </button>
+        )}
       </div>
     </div>
   );

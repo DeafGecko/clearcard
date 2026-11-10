@@ -150,6 +150,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                 <button
                   key={color.value}
                   onClick={() => setAccent(color.value)}
+                  aria-label={`Accent color ${color.name}`}
+                  aria-pressed={accent === color.value}
                   className={`accent-swatch rounded-full transition-all duration-200 flex items-center justify-center ${accent === color.value ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-900" : "opacity-50 hover:opacity-100 scale-90"}`}
                   style={{ backgroundColor: color.value }}
                 >

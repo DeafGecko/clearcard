@@ -119,8 +119,9 @@ Tests use Vitest with jsdom and Testing Library, and live in `test/`. They cover
 - `api/grammar.ts`: method, input, and API-key checks, and that the key is never returned to the client
 - `PasscodeModal` and `SettingsModal`: keypad input, live display size and theme saving
 - `App`: first-run cards, category filtering, the Vault staying hidden, and opening a card
+- `lib/recovery.ts`: recovery key format, case-insensitive checks, and storing only a hash
 
-Known security and robustness gaps are written as `it.fails` tests. They pass while the gap exists and should be changed to normal `it` tests when fixed. These include no lockout on Secret Code attempts, no current-code check when changing it, no length limit on the grammar API, and crashes on corrupt saved data.
+Browser tests use Playwright and run on desktop and phone sizes. They cover the main flows, the Secret Code lockout, the recovery key, and automated accessibility checks with axe. Run them with `npx playwright test`; the Vite dev server starts automatically.
 
 ### Production Build
 
@@ -140,15 +141,16 @@ Cards, categories, appearance preferences, and the Secret Code are currently sto
 
 This keeps the app simple and offline-friendly after its assets load, but `localStorage` is not encrypted secure storage. Clearing browser data removes locally stored cards, and anyone with access to the same browser profile may be able to inspect stored values. The Vault is an interface-level privacy feature, not a substitute for platform encryption or a password manager.
 
-There is no recovery for a forgotten Secret Code. Settings lets anyone with access to the app change the code without entering the current one, so the Secret Code does not protect private cards from someone who can use the device. Recovering a forgotten code currently means clearing the stored Secret Code from browser storage, which keeps cards and categories.
+When a Secret Code is set, the app shows a one-time recovery key. Only a SHA-256 hash of that key is stored. If the code is forgotten, entering the recovery key opens the Vault, and the code is cleared so a new one can be set in Settings. Losing both the code and the recovery key means the Vault can only be reset by clearing browser data, which also deletes the cards.
+
+The Secret Code protects against casual access, not against someone who can use the device. The Secret Code keypad locks for 60 seconds after five wrong entries, but the stored code is still readable in browser storage.
 
 ## Current Limitations
 
 - Data does not synchronize between browsers or devices.
 - There is no export or import workflow yet.
 - The app is not currently packaged as an installable PWA.
-- End-to-end browser tests are not yet in the project; the unit and component tests run with Vitest.
-- The Secret Code can be changed without knowing the current code, and it cannot be recovered if forgotten.
+- Browser tests cover the main flows on desktop and phone sizes; they don't cover every device or browser.
 - The repository includes grammar service code, but Smart Rewrite is not exposed in the current card editor UI.
 
 ## Direction

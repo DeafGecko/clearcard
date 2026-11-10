@@ -76,4 +76,14 @@ describe('PasscodeModal', () => {
     typeCode('123456');
     await waitFor(() => expect(JSON.parse(localStorage.getItem('visio_passcode_attempts') ?? '{}').failures ?? 0).toBe(0));
   });
+
+  it('shows a Forgot code option only when a handler is given', () => {
+    const { unmount } = render(<PasscodeModal onVerify={() => false} onClose={() => {}} accentColor="#FACC15" />);
+    expect(screen.queryByRole('button', { name: 'Forgot code?' })).not.toBeInTheDocument();
+    unmount();
+    const onForgot = vi.fn();
+    render(<PasscodeModal onVerify={() => false} onClose={() => {}} accentColor="#FACC15" onForgot={onForgot} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Forgot code?' }));
+    expect(onForgot).toHaveBeenCalled();
+  });
 });

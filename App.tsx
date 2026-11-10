@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { VisioCard, Category, UserPreferences, SystemCategories } from './types';
 import { storage } from './lib/storage';
+import { generateRecoveryKey, hashRecoveryKey } from './lib/recovery';
 import { Settings, FileKey, LogOut, Menu, X } from 'lucide-react';
 import {
   TrashIcon,
@@ -11,7 +12,8 @@ import {
 import FullscreenViewer from './components/FullscreenViewer';
 import CardEditorModal from './components/CardEditorModal';
 import CategoryManagerModal from './components/CategoryManagerModal';
-import PasscodeModal from './components/PasscodeModal';
+import PasscodeModal, { clearPasscodeAttempts } from './components/PasscodeModal';
+import { RecoveryKeyModal, RecoveryEntryModal } from './components/RecoveryModals';
 import SettingsModal from './components/SettingsModal';
 
 const App: React.FC = () => {
@@ -24,6 +26,8 @@ const App: React.FC = () => {
   const [showEditorModal, setShowEditorModal] = useState(false);
   const [showCatModal, setShowCatModal] = useState(false);
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
+  const [showRecoveryEntry, setShowRecoveryEntry] = useState(false);
+  const [pendingRecoveryKey, setPendingRecoveryKey] = useState<string | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -54,10 +58,26 @@ const App: React.FC = () => {
     if ('vibrate' in navigator) navigator.vibrate(ms);
   };
 
-  const handleUpdatePrefs = (newPrefs: UserPreferences) => {
-    setPrefs(newPrefs);
-    storage.savePrefs(newPrefs);
+  const handleUpdatePrefs = async (newPrefs: UserPreferences) => {
+    let next = newPrefs;
+    // A new Secret Code gets a new recovery key. Only its hash is saved.
+    if (newPrefs.passcode && newPrefs.passcode !== prefs.passcode) {
+      const key = generateRecoveryKey();
+      next = { ...newPrefs, recoveryKeyHash: await hashRecoveryKey(key) };
+      setPendingRecoveryKey(key);
+    }
+    setPrefs(next);
+    storage.savePrefs(next);
     triggerHaptic(50);
+  };
+
+  // Opens the Vault after the recovery key matches. The old code is cleared so
+  // the owner sets a new one in Settings.
+  const handleRecovered = () => {
+    handleUpdatePrefs({ ...prefs, passcode: '', recoveryKeyHash: undefined });
+    clearPasscodeAttempts();
+    setIsVaultUnlocked(true);
+    setShowRecoveryEntry(false);
   };
 
   const handleSaveCard = (
@@ -545,6 +565,23 @@ const App: React.FC = () => {
           onVerify={handlePasscodeVerify}
           onClose={() => setShowPasscodeModal(false)}
           accentColor={accentColor}
+          onForgot={() => {
+            setShowPasscodeModal(false);
+            setShowRecoveryEntry(true);
+          }}
+        />
+      )}
+      {showRecoveryEntry && (
+        <RecoveryEntryModal
+          storedHash={prefs.recoveryKeyHash ?? ''}
+          onRecovered={handleRecovered}
+          onClose={() => setShowRecoveryEntry(false)}
+        />
+      )}
+      {pendingRecoveryKey && (
+        <RecoveryKeyModal
+          recoveryKey={pendingRecoveryKey}
+          onDone={() => setPendingRecoveryKey(null)}
         />
       )}
       {showSettingsModal && (

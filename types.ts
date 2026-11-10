@@ -28,5 +28,7 @@ export interface UserPreferences {
   accentColor: string;
   displayTextColor: string;
   passcode: string;
+  // SHA-256 hash of the recovery key shown when the Secret Code was set.
+  recoveryKeyHash?: string;
   appLanguage: string;
 }
