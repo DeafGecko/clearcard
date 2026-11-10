@@ -7,7 +7,7 @@ const themes = ['light', 'dark', 'highContrast'] as const;
 for (const theme of themes) {
   test.describe(`axe: ${theme} theme`, () => {
     test.beforeEach(async ({ page }) => {
-      await resetStorage(page, { themeMode: theme, displaySize: 'normal', accentColor: '#FACC15', passcode: '' });
+      await resetStorage(page, { themeMode: theme, displaySize: 'normal', accentColor: '#FACC15' });
       await page.goto('/');
     });
 

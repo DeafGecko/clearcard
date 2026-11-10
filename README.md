@@ -1,166 +1,168 @@
-# ClearCard
+# ShowCard
 
-ClearCard is a mobile-first communication card app I built for Deaf and Hard of Hearing people. It is designed for situations where spoken communication is unreliable, inaccessible, or too slow: medical appointments, restaurants, service counters, emergencies, and everyday errands.
+ShowCard is a card app for Deaf and Hard of Hearing people.
 
-The idea is straightforward. Write a message once, save it as a card, and open it in a large full-screen view when it is needed. The interface stays intentionally direct so the message remains the focus.
+You write a message once and save it as a card. When you need it, tap the card. The screen shows the message in big text. The other person reads it. No typing back and forth, no talking.
 
-## Why I Built It
+I designed, built, and tested it by myself.
 
-Repeatedly typing the same explanation on a phone creates friction, especially in stressful or time-sensitive situations. ClearCard turns those repeated messages into reusable tools.
+## See it in 3 steps
 
-I treat accessibility as part of the application architecture, not as a layer added after the UI is finished. That affects the typography, contrast, touch targets, responsive behavior, motion, and the number of steps required to reach a card.
-
-## Current Features
-
-- Create, edit, delete, and organize reusable communication cards
-- Open cards in a full-screen presentation view
-- Filter cards by Medical, Services, Daily, Emergency, Vault, or custom categories
-- Swipe left on mobile and iPad to reveal Edit and Delete actions
-- Manage custom categories and their order
-- Store private cards in a passcode-protected Vault
-- Use one shared six-digit Secret Code for Vault access and private cards
-- Adjust display size with Compact, Normal, and Enlarged modes, applied instantly in Settings
-- Choose Light, low-glare Dark, or High Contrast appearance modes, applied instantly in Settings
-- Select an accent color used for selected controls, pressed cards, and the Secret Code keypad
-- Rotate full-screen text when showing a message across a table
-- Keep cards and preferences in browser `localStorage`
-
-## Accessibility Approach
-
-ClearCard uses Atkinson Hyperlegible for the primary interface. The Secret Code keypad uses Inter for clear numeric recognition. Both fonts are bundled locally with `@fontsource`, so the interface does not depend on a remote font request.
-
-The appearance modes serve different needs:
-
-- **Light** uses a white background and black text for daylight readability.
-- **Dark** uses near-black surfaces, soft off-white text, and restrained accents to reduce glare for people who are sensitive to bright screens, including some people affected by migraine or photosensitivity.
-- **High Contrast** uses pure black, signal yellow, and stronger boundaries for maximum visual separation.
-
-Other accessibility decisions include:
-
-- Large touch targets for primary actions
-- Responsive type and control sizing
-- Visible focus and pressed states
-- Text labels or accessible names for icon controls
-- Reduced-motion support for the Settings drawer
-- Haptic feedback where the browser and device support vibration
-- WCAG-aware text contrast and component boundaries
-
-Accessibility requirements vary by person and device. The three display modes are options, not assumptions about what every user needs.
-
-## Technical Stack
-
-| Area           | Technology                                               |
-| -------------- | -------------------------------------------------------- |
-| UI             | React 19 with functional components and hooks            |
-| Language       | TypeScript 5.8                                           |
-| Build system   | Vite 6                                                   |
-| Styling        | Tailwind CSS 4 plus scoped CSS custom properties         |
-| Icons          | Lucide React and local React SVG components              |
-| Fonts          | `@fontsource/atkinson-hyperlegible`, `@fontsource/inter` |
-| Persistence    | Browser `localStorage`                                   |
-| Serverless API | Vercel function in `api/grammar.ts`                      |
-| Deployment     | Vercel configuration included                            |
-
-The app is client-rendered and does not currently require an account or database. Preferences use a typed `UserPreferences` model and persist through the storage adapter in `lib/storage.ts`. Theme and display-size values are exposed to CSS through `data-theme` and `data-display-size` attributes on the application shell.
-
-## Project Structure
-
-```text
-clearcard/
-├── App.tsx                       Main application state and navigation
-├── index.tsx                     React entry point and bundled font imports
-├── index.css                     Theme tokens, responsive sizing, and global UI rules
-├── types.ts                      Shared TypeScript domain types
-├── components/
-│   ├── CardEditorModal.tsx       Create and edit communication cards
-│   ├── CategoryManagerModal.tsx  Add, remove, and reorder categories
-│   ├── FullscreenViewer.tsx      Large presentation view
-│   ├── Icons.tsx                 Local icon components
-│   ├── PasscodeModal.tsx         Shared Secret Code keypad
-│   └── SettingsModal.tsx         Appearance, sizing, color, and security settings
-├── lib/
-│   └── storage.ts                localStorage persistence and defaults
-├── services/
-│   └── geminiService.ts          Reserved service integration
-└── api/
-    └── grammar.ts                Vercel serverless grammar endpoint
+```mermaid
+flowchart LR
+  A ["Pick a card"] --> B ["Tap it"] --> C ["Show the screen"]
 ```
 
-## Local Development
+## What you can do
 
-### Requirements
+| Feature | What it means |
+| --- | --- |
+| Cards | Make, edit, delete, and sort your messages |
+| Full screen | Big text. Flip it around for a person across a table |
+| Categories | Medical, Services, Daily, Vault, or your own. Tap All to see everything. |
+| Emergency | A red button in the header. One tap shows the emergency cards. |
+| Undo | After you delete a card, an Undo button stays for 5 seconds. |
+| Swipe | On a phone, swipe left to edit or delete |
+| Write a note | Write a message and show it now, without saving it. Save it as a card only if you want to. The text box grows as you type. |
+| Undo | After you delete a card, an Undo button stays for 5 seconds. |
+| Vault | A locked area for private info, like an ID or address |
+| Recovery key | A backup key to open the Vault if you forget the code |
+| Settings | Text size and color mode change right away. Accent color and code changes save when you tap Save. |
 
-- Node.js 18 or newer
-- npm
+## How the Vault stays private
 
-### Install
+The Vault has a six-digit code. Here is what happens behind it:
+
+```mermaid
+flowchart TD
+  Code["Your 6-digit code"] -->|"hashed, never saved"| Hash["Stored hash"]
+  Key["Random vault key"] -->|"locked by code"| W1["Lock 1"]
+  Key -->|"locked by recovery key"| W2["Lock 2"]
+  Cards["Private cards"] -->|"encrypted with AES-GCM"| Blob["Encrypted blob in storage"]
+  Key --> Blob
+```
+
+In plain words:
+
+- The code is never saved. Only a hash of it is saved.
+- Your private cards are scrambled and saved as one block.
+- The key that unscrambles them is locked two ways. One lock uses your code. The other uses the recovery key.
+- When you lock the Vault, the open cards and the key leave memory.
+- Private cards can only be added while the Vault is open.
+- Five wrong codes lock the keypad for one minute.
+- If you use the recovery key, the Vault opens. Then you set a new code. The recovery key stays valid until you do.
+
+A changed code only changes the lock, so the cards do not need to be scrambled again.
+
+| Protection | How |
+| --- | --- |
+| Code storage | PBKDF2-SHA256, 310,000 rounds, random salt per code |
+| Card storage | AES-GCM encryption, one encrypted block |
+| Key storage | Random 256-bit key, locked by code and by recovery key |
+| Recovery key | 16 characters, shown once, saved only as a SHA-256 hash |
+| Wrong codes | Five tries, then a 60-second lock |
+| Old data | Older plain-text code is hashed on load. Older plain-text Vault cards are encrypted the first time you unlock the Vault. |
+
+**Limit:** a six-digit code is short. If someone copies the saved browser data, they can guess codes on their own computer. A longer code is my next change.
+
+## Accessibility
+
+- A font made for low vision readers (Atkinson Hyperlegible)
+- Three color modes: Light, Dark, and High Contrast. Light mode uses a warm off-white to reduce glare.
+- Automated checks find no contrast problems on the main and Settings screens (text and borders)
+- Every button has a 36px or larger target, and every icon has a label
+- Keyboard users get a clear focus ring, a "Skip to cards" link, and the Escape key closes dialogs
+- The category row is a labeled navigation region
+- Automatic checks (axe) on the main and Settings screens in all three modes
+
+## Tests
+
+| What | How many | Command |
+| --- | --- | --- |
+| Small tests (unit) | 62 | `npm test` |
+| Browser tests | 40, phone and desktop sizes | `npx playwright test` |
+| Type check | 1 | `npx tsc --noEmit -p .` |
+
+## Tech I used
+
+```mermaid
+flowchart LR
+  UI["React + TypeScript + Tailwind"] --> Store["Browser storage"]
+  UI --> Crypto["Web Crypto"]
+  UI -.-> API["Vercel function: AI grammar helper"]
+  Tests["Vitest + Playwright + axe"] -.-> UI
+```
+
+- **React 19 and TypeScript** for the screens
+- **Vite 6** to build it
+- **Tailwind CSS 4** for styling
+- **Web Crypto** for the encryption, built into the browser
+- **Vercel Edge function** for the AI helper, so the API key stays on the server
+- **Vitest, Playwright, and axe** for testing
+
+## Run it
+
+You need Node.js 18 or newer.
 
 ```bash
 npm install
-```
-
-### Start the Development Server
-
-```bash
 npm run dev
 ```
 
-Vite is configured for `http://localhost:3000`. If that port is occupied, Vite selects another available port and prints the URL in the terminal.
+Then open http://localhost:3000. If that port is busy, Vite picks another one and shows it in the terminal.
 
-### Tests
+## What changed recently
 
-```bash
-npm test
-```
+**Latest (November 10, 2026)**
 
-Tests use Vitest with jsdom and Testing Library, and live in `test/`. They cover:
+- Plainer wording throughout: Look, Text size, Code, Strong colors, Biggest, Private, Make private, Hide private, Show private, Edit list, Edit Groups, Emergency.
+- Write a note (pen icon) replaces Quick write. The text box grows as you type.
+- Secret Code is exactly 6 digits. It is checked as soon as the sixth digit is typed.
+- Tapping the lock button locks the Vault and opens the code screen in one tap.
+- The logout button is light gray when no code is set, and accent when a code is set.
+- Card editor: Back button with a label, title on its own line with an icon, red lock button when the card is private.
+- Edit list: smaller rows and arrows, bigger group names, a circle add button.
+- Undo bar for five seconds after deleting a card.
+- Removed the unused Gemini service file and its build settings.
 
-- `lib/storage.ts`: defaults, saving and loading, and the legacy high-contrast migration
-- `api/grammar.ts`: method, input, and API-key checks, and that the key is never returned to the client
-- `PasscodeModal` and `SettingsModal`: keypad input, live display size and theme saving
-- `App`: first-run cards, category filtering, the Vault staying hidden, and opening a card
-- `lib/recovery.ts`: recovery key format, case-insensitive checks, and storing only a hash
+- Renamed the app to ShowCard. New speech-bubble brand icon in the header and as the favicon.
+- Write a note: write a message and show it now. Save it as a card only if you want.
+- Emergency moved into the header. The category row is simpler: one size, round pills.
+- Header and card buttons are smaller and evenly spaced.
+- Light mode uses a warm off-white background with darker borders for contrast.
+- Keyboard and screen reader support: focus rings, skip link, Escape to close, and labeled navigation.
+- Settings is smaller, with more space. Theme modes have their own icons. Display sizes are plain text.
+- The burger menu dims the page behind it.
+- On phones, the logout icon is in the menu. Desktop shows it in the header.
+- Tapping into a text box shows a yellow border.
+- Five-second Undo after deleting a card.
 
-Browser tests use Playwright and run on desktop and phone sizes. They cover the main flows, the Secret Code lockout, the recovery key, and automated accessibility checks with axe. Run them with `npx playwright test`; the Vite dev server starts automatically.
+**November 10, 2026**
 
-### Production Build
+- Vault cards are now encrypted as one block. Before, they were plain text in storage.
+- The vault key is locked two ways (by the code and by the recovery key). Changing the code only changes the lock.
+- The Secret Code is saved as a hash, not as plain text. Older plain-text codes are converted on load.
+- Private cards need an unlocked Vault. Older plain-text Vault cards are moved into the encrypted Vault on first unlock.
+- The recovery key is shown once when you set a code. There is a recovery form to use it.
+- Added browser tests (Playwright) and accessibility checks (axe) in three color modes.
 
-```bash
-npm run build
-```
+**November 9, 2026**
 
-### Preview the Production Build
+- Text size and color mode change right away in Settings.
+- Accent color on the keypad and the swipe actions.
+- Added the first test suite.
 
-```bash
-npm run preview
-```
+## Status
 
-## Data and Privacy
+Built and tested in desktop and phone-sized browsers.
 
-Cards, categories, appearance preferences, and the Secret Code are currently stored in browser `localStorage`. The Secret Code is saved in plain text. There is no account system or cloud synchronization.
+Not done yet:
 
-This keeps the app simple and offline-friendly after its assets load, but `localStorage` is not encrypted secure storage. Clearing browser data removes locally stored cards, and anyone with access to the same browser profile may be able to inspect stored values. The Vault is an interface-level privacy feature, not a substitute for platform encryption or a password manager.
+- Not tested on real iPhone or Android phones with a screen reader
+- The AI grammar helper is built, but no screen uses it yet
+- No sync or backup. Clearing browser data deletes everything
+- No home screen install or offline mode yet
 
-When a Secret Code is set, the app shows a one-time recovery key. Only a SHA-256 hash of that key is stored. If the code is forgotten, entering the recovery key opens the Vault, and the code is cleared so a new one can be set in Settings. Losing both the code and the recovery key means the Vault can only be reset by clearing browser data, which also deletes the cards.
+## Author
 
-The Secret Code protects against casual access, not against someone who can use the device. The Secret Code keypad locks for 60 seconds after five wrong entries, but the stored code is still readable in browser storage.
-
-## Current Limitations
-
-- Data does not synchronize between browsers or devices.
-- There is no export or import workflow yet.
-- The app is not currently packaged as an installable PWA.
-- Browser tests cover the main flows on desktop and phone sizes; they don't cover every device or browser.
-- The repository includes grammar service code, but Smart Rewrite is not exposed in the current card editor UI.
-
-## Direction
-
-The next useful work is practical rather than decorative:
-
-- Add encrypted export and import for backups
-- Add installable PWA support and offline caching
-- Add automated accessibility and interaction tests
-- Improve keyboard and screen-reader verification across complete workflows
-- Add optional language support without making the core interface harder to scan
-
-ClearCard is built around one priority: help someone communicate clearly with as little friction as possible.
+Dwight Rogers. Designed, built, and tested solo.

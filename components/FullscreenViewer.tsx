@@ -118,7 +118,7 @@ const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ card, onClose, onEd
             </div>
             <div className="text-center">
               <h2 className="text-2xl font-black mb-2 uppercase tracking-tight">Sensitive Info</h2>
-              <p className="text-zinc-500 font-bold text-sm max-w-50">This card contains personal or medical details.</p>
+              <p className="text-zinc-500 font-bold text-sm max-w-50">Private or medical info.</p>
             </div>
             <button 
               onClick={handleReveal}

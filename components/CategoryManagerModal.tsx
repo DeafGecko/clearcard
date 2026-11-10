@@ -101,7 +101,7 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ categories,
         >
           <ArrowLeftIcon />
         </button>
-        <h2 className="text-2xl font-black">Manage Categories</h2>
+        <h2 className="text-2xl font-black">Edit Groups</h2>
       </div>
 
       <form onSubmit={(e) => handleSubmit(e)} className="flex flex-col gap-2 mb-8">
@@ -118,7 +118,7 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ categories,
             aria-label="Add new category"
             disabled={!newCat.trim()}
             onClick={handleSubmit as any}
-            className="h-14 w-14 text-black rounded-2xl font-black disabled:opacity-30 active:scale-95 transition-transform flex items-center justify-center shadow-lg outline-none border-none"
+            className="add-group-button h-14 w-14 text-black rounded-full font-black disabled:opacity-30 active:scale-95 transition-transform flex items-center justify-center shadow-lg outline-none border-none"
             style={{ backgroundColor: accentColor }}
           >
             <PlusIcon aria-hidden="true" size={30} strokeWidth={4} />
@@ -127,9 +127,9 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ categories,
         {error && <p className="text-red-500 text-xs font-bold px-2 animate-pulse">{error}</p>}
       </form>
 
-      <div className="flex-1 overflow-y-auto space-y-3 pb-32">
+      <div className="flex-1 overflow-y-auto space-y-2 pb-32">
         <label className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest px-2 mb-1">
-          Your Categories ({categories.length})
+          Your groups ({categories.length})
         </label>
         {categories.map((cat, index) => (
           <div
@@ -148,33 +148,33 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ categories,
             }`}
             style={{ minHeight: 64, ...(overIndex === index && dragIndex !== null && dragIndex !== index ? { borderColor: accentColor } : {}) }}
           >
-            <div className="flex flex-col items-center justify-center self-stretch rounded-l-2xl px-4" style={{ backgroundColor: accentColor, gap: 8, minWidth: 60 }}>
+            <div className="flex flex-col items-center justify-center self-stretch rounded-l-2xl px-2" style={{ backgroundColor: accentColor, gap: 12, minWidth: 44 }}>
                 <button
                   onClick={(e) => { e.stopPropagation(); moveUp(index); }}
                   disabled={index === 0}
-                  className="outline-none border-none bg-transparent p-0 leading-none active:scale-110 transition-all disabled:opacity-20"
+                  className="category-arrow outline-none border-none bg-transparent p-0 leading-none active:scale-110 transition-all disabled:opacity-20"
                   aria-label="Move Up"
                 >
-                  <svg width="26" height="16" viewBox="0 0 26 16" fill="none" stroke="#000000" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="10" viewBox="0 0 26 16" fill="none" stroke="#000000" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="2,13 13,3 24,13" />
                   </svg>
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); moveDown(index); }}
                   disabled={index === categories.length - 1}
-                  className="outline-none border-none bg-transparent p-0 leading-none active:scale-110 transition-all disabled:opacity-20"
+                  className="category-arrow outline-none border-none bg-transparent p-0 leading-none active:scale-110 transition-all disabled:opacity-20"
                   aria-label="Move Down"
                 >
-                  <svg width="26" height="16" viewBox="0 0 26 16" fill="none" stroke="#000000" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="10" viewBox="0 0 26 16" fill="none" stroke="#000000" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="2,3 13,13 24,3" />
                   </svg>
                 </button>
               </div>
-            <div className="flex items-center gap-4 py-4 px-5 flex-1">
+            <div className="flex items-center gap-3 py-2 px-4 flex-1">
               <div className="flex flex-col">
-                <span className="font-bold leading-tight" style={{ fontFamily: '"Atkinson Hyperlegible", sans-serif', fontSize: '1.2rem' }}>{cat}</span>
+                <span className="font-bold leading-tight" style={{ fontFamily: '"Atkinson Hyperlegible", sans-serif', fontSize: '1.5rem' }}>{cat}</span>
                 {isProtected(cat) && (
-                  <span className="text-[9px] text-zinc-600 font-black uppercase tracking-widest">Built-in</span>
+                  <span className="built-in-note">Built-in</span>
                 )}
               </div>
             </div>
@@ -183,14 +183,14 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ categories,
               {canDelete(cat) ? (
                 <button
                   onClick={() => onDelete(cat)}
-                  className="text-red-500 p-2 active:scale-90 rounded-xl transition-all outline-none border-none bg-transparent"
+                  className="category-icon-button text-red-500 p-2 active:scale-90 rounded-xl transition-all outline-none border-none bg-transparent"
                   aria-label={`Delete ${cat}`}
                 >
-                  <TrashIcon size={24} />
+                  <TrashIcon size={20} />
                 </button>
               ) : (
-                <div className="bg-zinc-900 p-3 rounded-xl opacity-30">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-700"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <div className="bg-zinc-900 p-2 rounded-xl opacity-30">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-700"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
               )}
               {/* Drag handle — 2×3 dots */}

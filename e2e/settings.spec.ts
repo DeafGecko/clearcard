@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 
 test('display size applies immediately and survives reload', async ({ page }) => {
   await openSettings(page);
-  await page.getByRole('button', { name: 'enlarged' }).click();
+  await page.getByRole('button', { name: 'Biggest' }).click();
   await expect(page.locator('.app-shell')).toHaveAttribute('data-display-size', 'enlarged');
 
   await page.reload();

@@ -27,3 +27,6 @@ dist-ssr
 # Playwright
 test-results/
 playwright-report/
+
+# Local planning docs (kept off GitHub)
+Docs/

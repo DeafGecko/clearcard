@@ -14,7 +14,7 @@ beforeAll(() => {
 describe('App: first run', () => {
   it('shows the brand and the built-in cards', () => {
     render(<App />);
-    expect(screen.getByRole('heading', { name: 'ClearCard' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'ShowCard' })).toBeInTheDocument();
     expect(screen.getByText('Doctor Appointment')).toBeInTheDocument();
   });
 
@@ -48,6 +48,6 @@ describe('App: robustness', () => {
   it('still renders when saved cards are corrupt', () => {
     localStorage.setItem('visio_cards', '[{broken');
     render(<App />);
-    expect(screen.getByRole('heading', { name: 'ClearCard' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'ShowCard' })).toBeInTheDocument();
   });
 });

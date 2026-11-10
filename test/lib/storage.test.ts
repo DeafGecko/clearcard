@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { storage } from '../../lib/storage';
+import { storage, DEFAULT_VAULT_CARDS } from '../../lib/storage';
 import { SystemCategories } from '../../types';
 
 describe('storage: defaults', () => {
@@ -7,20 +7,21 @@ describe('storage: defaults', () => {
 
   it('returns the built-in cards on first run', () => {
     const cards = storage.getCards();
-    expect(cards).toHaveLength(10);
+    expect(cards).toHaveLength(9);
     expect(cards[0].title).toBe('Doctor Appointment');
   });
 
-  it('marks the Personal ID card as sensitive and in the Vault', () => {
-    const personal = storage.getCards().find(c => c.id === '10');
-    expect(personal?.category).toBe(SystemCategories.VAULT);
-    expect(personal?.isSensitive).toBe(true);
-    expect(personal?.isLocked).toBe(true);
+  it('keeps the Personal ID card out of plain-text storage, as a Vault template', () => {
+    expect(storage.getCards().find(c => c.id === '10')).toBeUndefined();
+    const personal = DEFAULT_VAULT_CARDS[0];
+    expect(personal.category).toBe(SystemCategories.VAULT);
+    expect(personal.isSensitive).toBe(true);
+    expect(personal.isLocked).toBe(true);
   });
 
   it('returns default preferences with no passcode set', () => {
     const prefs = storage.getPrefs();
-    expect(prefs.passcode).toBe('');
+    expect(prefs.passcodeHash).toBeUndefined();
     expect(prefs.themeMode).toBe('light');
     expect(prefs.displaySize).toBe('normal');
   });
@@ -59,13 +60,30 @@ describe('storage: robustness', () => {
 
   it('falls back to defaults when saved cards are corrupt', () => {
     localStorage.setItem('visio_cards', '[{broken');
-    expect(storage.getCards()).toHaveLength(10);
+    expect(storage.getCards()).toHaveLength(9);
   });
 
   it('ignores saved values with the wrong shape', () => {
     localStorage.setItem('visio_cards', JSON.stringify({ not: 'an array' }));
     localStorage.setItem('visio_prefs', JSON.stringify(['not', 'an', 'object']));
-    expect(storage.getCards()).toHaveLength(10);
+    expect(storage.getCards()).toHaveLength(9);
     expect(storage.getPrefs().displaySize).toBe('normal');
+  });
+});
+
+describe('storage: legacy plain-text Secret Code', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('reads the old plain-text code and keeps it out of loaded preferences', () => {
+    localStorage.setItem('visio_prefs', JSON.stringify({ passcode: '123456', themeMode: 'dark' }));
+    expect(storage.getLegacyPasscode()).toBe('123456');
+    const prefs = storage.getPrefs() as unknown as Record<string, unknown>;
+    expect(prefs.passcode).toBeUndefined();
+    expect(prefs.themeMode).toBe('dark');
+  });
+
+  it('returns nothing when no old code is stored', () => {
+    localStorage.setItem('visio_prefs', JSON.stringify({ themeMode: 'light' }));
+    expect(storage.getLegacyPasscode()).toBeUndefined();
   });
 });

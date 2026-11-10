@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeftIcon, CircleXIcon } from './Icons';
 
 interface PasscodeModalProps {
-  onVerify: (code: string) => boolean;
+  onVerify: (code: string) => boolean | Promise<boolean>;
   onClose: () => void;
   title?: string;
   accentColor: string;
@@ -15,6 +15,8 @@ interface PasscodeModalProps {
 // modal or reloading the page. After MAX_ATTEMPTS wrong codes, input is paused.
 const ATTEMPTS_KEY = 'visio_passcode_attempts';
 const MAX_ATTEMPTS = 5;
+// A Secret Code is exactly 6 digits. It is checked as soon as the sixth digit is typed.
+const CODE_LENGTH = 6;
 const LOCKOUT_MS = 60_000;
 
 interface AttemptState {
@@ -63,7 +65,7 @@ export const recordPasscodeFailure = (): AttemptState => {
   return next;
 };
 
-const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title = "Enter Secret Code", accentColor, onForgot }) => {
+const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title = "Enter your code", accentColor, onForgot }) => {
   const [code, setCode] = useState('');
   const [error, setError] = useState(false);
   const [attempts, setAttempts] = useState<AttemptState>(readAttempts);
@@ -85,16 +87,16 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
   };
 
   const handleNumber = (num: string) => {
-    if (isLocked || code.length >= 6) return;
+    if (isLocked || code.length >= CODE_LENGTH) return;
 
     triggerHaptic(10);
     const newCode = code + num;
     setCode(newCode);
     setError(false);
 
-    if (newCode.length === 6) {
-      setTimeout(() => {
-        if (onVerify(newCode)) {
+    if (newCode.length === CODE_LENGTH) {
+      setTimeout(async () => {
+        if (await onVerify(newCode)) {
           triggerHaptic(50);
           clearPasscodeAttempts();
           setAttempts({ failures: 0, lockedUntil: 0 });
@@ -146,7 +148,7 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
 
         {/* Code Visualizer */}
         <div className={`flex gap-4 mb-12 ${error ? 'animate-bounce' : ''}`}>
-          {[...Array(6)].map((_, i) => (
+          {[...Array(CODE_LENGTH)].map((_, i) => (
             <div
               key={i}
               className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${
@@ -193,7 +195,7 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
           <button
             type="button"
             onClick={onForgot}
-            className="mt-6 px-4 py-2 text-sm font-black uppercase tracking-widest underline underline-offset-4"
+            className="passcode-forgot-link"
           >
             Forgot code?
           </button>

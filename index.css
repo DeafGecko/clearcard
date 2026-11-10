@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 :root {
-	--theme-background: #ffffff;
+	--theme-background: #f7f5f0;
 	--theme-foreground: #000000;
-	--theme-surface: #ffffff;
+	--theme-surface: #f7f5f0;
 	--theme-signal: #000000;
-	--theme-outline: #8a8a8a;
+	--theme-outline: #7a7a7a;
 }
 
 html,
@@ -18,7 +18,7 @@ body,
 .app-shell {
 	--ui-body-size: 18px;
 	--ui-card-title-size: 24px;
-	--ui-card-min-height: 68px;
+	--ui-card-min-height: 64px;
 	--ui-control-min-height: 60px;
 	--ui-keypad-size: 80px;
 	--ui-keypad-number-size: 36px;
@@ -86,7 +86,7 @@ body,
 	--theme-foreground: #f1f1ed;
 	--theme-surface: #1b1b1b;
 	--theme-signal: #f2cf4a;
-	--theme-outline: #666666;
+	--theme-outline: #7a7a7a;
 }
 
 .app-shell[data-theme="highContrast"] {
@@ -111,6 +111,14 @@ body,
 
 .app-header {
 	border-width: 0;
+}
+
+/* Dims the page behind the open menu. The header sits above it, so the menu stays bright. */
+.app-shell .mobile-menu-tint {
+	position: fixed;
+	inset: 0;
+	z-index: 35;
+	background: rgba(0, 0, 0, 0.4);
 }
 
 .mobile-header-menu {
@@ -149,6 +157,19 @@ body,
 	border: 0;
 }
 
+/* Bottom bar: no strip. The Quick write button floats on its own. */
+.app-shell .app-toolbar {
+	background: transparent;
+	border: 0;
+	padding-top: 8px;
+	padding-bottom: 16px;
+}
+
+.app-shell .quick-write-float {
+	background: var(--theme-surface);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
 .app-card {
 	background: var(--theme-surface);
 	border: 2px solid var(--theme-outline);
@@ -184,7 +205,7 @@ body,
 	}
 
 	.swipe-card-content[data-open="true"] {
-		transform: translateX(-168px);
+		transform: translateX(-112px);
 	}
 
 	.desktop-card-actions {
@@ -234,6 +255,43 @@ body,
 	animation: settings-slide-out 550ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Settings: smaller controls with more space between them. Scoped to the panel. */
+.app-shell .settings-panel button {
+	min-height: 44px;
+}
+
+.app-shell .settings-panel .settings-close {
+	width: 44px;
+	height: 44px;
+}
+
+.app-shell .settings-panel .accent-swatch {
+	width: 44px;
+	height: 44px;
+	min-height: 44px;
+}
+
+.app-shell .settings-panel .theme-mode-option {
+	min-height: 60px;
+}
+
+.settings-panel section > div {
+	gap: 12px;
+}
+
+/* Passcode row: no box, just the lock, the label, and the CHANGE button. */
+.settings-panel .passcode-row {
+	padding: 0;
+	border: 0;
+	background: transparent;
+}
+
+.app-shell .settings-panel .passcode-row button {
+	min-height: 40px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
 .settings-overlay.is-closing {
 	animation: settings-fade-out 550ms ease both;
 }
@@ -245,15 +303,15 @@ body,
 }
 
 .settings-unsaved-dialog[data-theme="light"] {
-	--theme-surface: #ffffff;
+	--theme-surface: #f7f5f0;
 	--theme-foreground: #000000;
-	--theme-outline: #8a8a8a;
+	--theme-outline: #7a7a7a;
 }
 
 .settings-unsaved-dialog[data-theme="dark"] {
 	--theme-surface: #1b1b1b;
 	--theme-foreground: #f1f1ed;
-	--theme-outline: #666666;
+	--theme-outline: #7a7a7a;
 }
 
 .settings-unsaved-dialog[data-theme="highContrast"] {
@@ -327,6 +385,12 @@ body,
 	min-height: var(--ui-control-min-height);
 }
 
+/* Smaller dialog buttons. Beats the global 60px minimum above. */
+.app-shell .dialog-small-button {
+	min-height: 52px;
+	height: 52px;
+}
+
 .app-shell .fullscreen-top-control {
 	background: rgb(255 255 255 / 15%);
 	border: 0;
@@ -341,6 +405,20 @@ body,
 .passcode-modal,
 .passcode-modal button {
 	font-family: Inter, sans-serif;
+}
+
+/* "Forgot code?" is a small text link, not a button. Overrides the global button box. */
+.app-shell .passcode-forgot-link {
+	min-height: 0;
+	margin-top: 24px;
+	padding: 8px 4px;
+	border: 0;
+	background: transparent;
+	color: var(--theme-foreground);
+	font-size: 12px;
+	font-weight: 600;
+	text-decoration: underline;
+	text-underline-offset: 4px;
 }
 
 .app-shell:not([data-theme="highContrast"]) .passcode-back-button {
@@ -360,79 +438,196 @@ body,
 	transform: scale(0.94);
 }
 
-.app-nav button {
-	height: auto !important;
-	min-height: var(--ui-control-min-height) !important;
+/* Card Edit and Delete: 44px touch targets, placed close together. Beats the global 60px minimum. */
+.app-shell .desktop-card-actions button {
+	width: 44px;
+	height: 44px;
+	min-height: 44px;
 }
 
-.app-nav .nav-primary-button {
+/* Quick write: left-aligned text in a light gray box. The box uses the theme's gray border. */
+.app-shell .quick-write-text {
+	border: 2px solid var(--theme-outline);
+	border-radius: 12px;
+	background: transparent;
+	color: inherit;
+	text-align: left;
+}
+
+
+/* Keyboard focus: a dark ring in light mode and a light ring in dark mode. Both pass 3:1. */
+.app-shell :focus-visible {
+	outline: 3px solid var(--theme-foreground);
+	outline-offset: 3px;
+}
+
+/* Text boxes: when you tap in to type, the box border turns yellow. No extra black outline. */
+.app-shell textarea:focus,
+.app-shell input:not([type="range"]):not([type="color"]):focus {
+	outline: none;
+	border-color: var(--accent-color);
+}
+
+/* Undo bar for a deleted card. Bottom right, above the Quick write button. */
+.app-shell .undo-toast {
+	position: fixed;
+	right: 16px;
+	bottom: 96px;
+	z-index: 40;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 12px 16px;
+	border-radius: 12px;
+	background: var(--theme-foreground);
+	color: var(--theme-background);
+	font-weight: 700;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.app-shell .undo-toast button {
+	min-height: 40px;
+	padding: 8px 16px;
+	border: 0;
+	border-radius: 999px;
+	background: var(--accent-color);
+	color: #000000;
+	font-weight: 800;
+}
+
+/* Settings code box: lighter gray placeholder text. */
+.app-shell .settings-code-input::placeholder {
+	color: #a3a3a3;
+	opacity: 1;
+}
+
+/* Logout button when no Secret Code is set: light gray. */
+.app-shell .logout-button-idle {
+	background: #e5e5e5;
+	color: #8a8a8a;
+}
+
+.app-shell[data-theme="dark"] .logout-button-idle,
+.app-shell[data-theme="highContrast"] .logout-button-idle {
+	background: #2a2a2a;
+	color: #6b6b6b;
+}
+
+/* Add group button: a 56px circle. Matches the input height. */
+.app-shell .add-group-button {
+	min-height: 56px;
+	width: 56px;
+	height: 56px;
+}
+
+/* Edit list: small arrows and delete icon. They are not 60px touch targets here, so the global minimum is removed. */
+.app-shell .category-arrow,
+.app-shell .category-icon-button {
+	min-height: 0;
+}
+
+/* "Built-in" sub-line under a category name. Small and gray. Overrides the global span size. */
+.app-shell .built-in-note {
+	font-size: 12px !important;
+	font-weight: 500 !important;
+	letter-spacing: 0 !important;
+	color: #666666 !important;
+}
+
+.app-shell[data-theme="dark"] .built-in-note {
+	color: #a3a3a3 !important;
+}
+
+.app-shell[data-theme="highContrast"] .built-in-note {
+	color: #d4d4d4 !important;
+}
+
+/* Skip link: hidden until a keyboard user tabs to it. */
+.skip-link {
+	position: fixed;
+	left: -9999px;
+	top: 16px;
+	z-index: 200;
+	padding: 12px 16px;
+	border-radius: 8px;
+	background: var(--theme-foreground);
+	color: var(--theme-background);
+	font-weight: 700;
+}
+
+.skip-link:focus {
+	left: 16px;
+}
+
+/* Header buttons: 52px circles. Beats the global 60px minimum. */
+.app-header .header-utility {
+	width: 36px;
+	height: 36px;
+	min-height: 36px;
+	border-radius: 999px;
+}
+
+/* Category row: one size, round pills, normal-weight labels, soft fills. */
+.app-nav button {
+	height: 52px !important;
+	min-height: 52px !important;
+}
+
+.app-nav .nav-primary-button,
+.app-nav .nav-category-button,
+.app-nav .nav-modify-button {
 	display: inline-flex;
 	flex-shrink: 0;
 	align-items: center;
 	justify-content: center;
-	min-width: 60px;
-	padding: 12px 24px;
-	border: 0;
-	border-radius: 8px;
-	font-weight: 900;
-	transition: transform 160ms ease, box-shadow 160ms ease;
+	gap: 6px;
+	min-width: 52px;
+	padding: 0 26px;
+	border: 2px solid var(--theme-outline);
+	border-radius: 999px;
+	background: var(--theme-surface);
+	color: var(--theme-foreground);
+	font-size: 18px;
+	font-weight: 600;
+	text-transform: none;
+	transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
-.app-nav .nav-primary-button.is-active {
-	transform: scale(1.05);
+.app-nav .nav-primary-button:active,
+.app-nav .nav-category-button:active,
+.app-nav .nav-modify-button:active {
+	transform: scale(0.96);
+}
+
+.app-nav .nav-add-button {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 52px;
+	height: 52px;
+	padding: 0;
+	border: 0;
+	border-radius: 999px;
+	background: var(--accent-color);
+	color: #000000;
 }
 
 .app-nav .nav-emergency-button {
-	width: 60px;
-	padding-inline: 0;
+	margin-right: 28px;
+	width: 52px;
+	min-width: 52px;
+	padding: 0;
+	border: 0;
 	background: #e53935;
 	color: #ffffff;
 }
 
-.app-nav .nav-all-button {
-	border: 2px solid var(--theme-outline);
-	background: var(--theme-surface);
-	color: var(--theme-foreground);
-}
-
-.app-nav .nav-all-button.is-active {
-	border-color: var(--nav-button-color);
-	background: var(--nav-button-color);
-	color: #000000;
-}
-
-.app-nav .nav-category-button {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	padding: 12px 24px;
-	border: 2px solid var(--theme-outline);
-	border-radius: 8px;
-	background: var(--theme-surface);
-	color: var(--theme-foreground);
-	font-weight: 900;
-	transition: background-color 160ms ease, color 160ms ease;
-}
-
+.app-nav .nav-all-button.is-active,
 .app-nav .nav-category-button.is-active {
+	border-color: var(--nav-button-color, var(--accent-color));
+	background: var(--nav-button-color, var(--accent-color));
 	color: #000000;
-}
-
-.app-nav .nav-modify-button {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	padding: 12px 20px;
-	border: 2px solid var(--theme-outline);
-	border-radius: 8px;
-	background: var(--theme-surface);
-	font-weight: 900;
-	text-transform: uppercase;
-	transition: transform 160ms ease;
-}
-
-.app-nav .nav-modify-button:active {
-	transform: scale(0.95);
 }
 
 .display-size-option {

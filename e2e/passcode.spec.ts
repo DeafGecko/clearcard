@@ -1,16 +1,17 @@
 import { test, expect } from '@playwright/test';
-import { resetStorage } from './helpers';
+import { resetStorage, vaultSeed } from './helpers';
 
 const SECRET = '123456';
 
 test.beforeEach(async ({ page }) => {
-  await resetStorage(page, { passcode: SECRET, themeMode: 'light', displaySize: 'normal', accentColor: '#FACC15' });
+  const seed = await vaultSeed(SECRET, 'ABCD-EFGH-JKMN-PQRS');
+  await resetStorage(page, { ...seed.prefs, themeMode: 'light', displaySize: 'normal', accentColor: '#FACC15' }, seed.extra);
   await page.goto('/');
 });
 
 const openVault = async (page: import('@playwright/test').Page) => {
-  await page.getByRole('navigation').getByRole('button', { name: 'Vault' }).click();
-  await page.getByRole('button', { name: 'UNLOCK VAULT' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: 'Private' }).click();
+  await page.getByRole('button', { name: 'UNLOCK PRIVATE', exact: true }).click();
 };
 
 const enter = async (page: import('@playwright/test').Page, code: string) => {

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Category, SystemCategories } from '../types';
-import { ArrowLeftIcon, LockIcon } from './Icons';
+import { ArrowLeftIcon, LockIcon, EditIcon, PlusIcon } from './Icons';
 import PasscodeModal from './PasscodeModal';
 
 interface CardEditorModalProps {
@@ -9,13 +9,25 @@ interface CardEditorModalProps {
   onClose: () => void;
   initialData?: { title: string; content: string; category: Category };
   accentColor: string;
-  passcode: string;
-  onSetPasscode: (passcode: string) => void;
+  vaultUnlocked: boolean;
+  // True when a Secret Code or Vault already exists, even if it is locked.
+  vaultExists: boolean;
+  onRequestVault: () => void;
+  onSetPasscode: (passcode: string) => Promise<boolean> | void;
 }
 
-const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, onClose, initialData, accentColor, passcode, onSetPasscode }) => {
+const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, onClose, initialData, accentColor, vaultUnlocked, vaultExists, onRequestVault, onSetPasscode }) => {
   const [title, setTitle] = useState(initialData?.title || '');
   const [content, setContent] = useState(initialData?.content || '');
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+
+  // Grow the message box with the text, so each new line shows.
+  useLayoutEffect(() => {
+    const box = contentRef.current;
+    if (!box) return;
+    box.style.height = 'auto';
+    box.style.height = `${box.scrollHeight}px`;
+  }, [content]);
   const [category, setCategory] = useState<Category>(initialData?.category || SystemCategories.DAILY);
   const [isPrivate, setIsPrivate] = useState(
     initialData?.category === SystemCategories.VAULT
@@ -50,8 +62,11 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
 
   const handlePrivateToggle = () => {
     if (!isPrivate) {
-      if (passcode) {
+      if (vaultUnlocked) {
         markAsPrivate();
+      } else if (vaultExists) {
+        // Private cards are encrypted with the Vault key, so the Vault must be open first.
+        onRequestVault();
       } else {
         setNewPasscodeDraft(null);
         setShowPasscodeGate(true);
@@ -89,11 +104,15 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
 
   return (
     <div className="theme-page fixed inset-0 z-70 flex flex-col p-6 animate-in slide-in-from-bottom duration-300 overflow-y-auto">
-      <div className="flex items-center gap-4 mb-8">
-        <button onClick={handleClose} aria-label="Close card editor" className="editor-back-button p-3 bg-zinc-900 rounded-2xl active:scale-95 transition-transform outline-none border-none">
+      <div className="mb-8">
+        <button onClick={handleClose} aria-label="Back" className="editor-back-button flex items-center gap-2 px-4 py-3 bg-zinc-900 rounded-2xl font-black active:scale-95 transition-transform outline-none border-none">
           <ArrowLeftIcon aria-hidden="true" />
+          <span>Back</span>
         </button>
-        <h2 className="text-2xl font-black">{initialData ? 'Edit Card' : 'New Card'}</h2>
+        <h2 className="max-w-2xl mx-auto w-full mt-2 flex items-center gap-3 text-2xl font-black">
+          {initialData ? <EditIcon size={24} aria-hidden="true" /> : <PlusIcon size={24} aria-hidden="true" />}
+          {initialData ? 'Edit Card' : 'New Card'}
+        </h2>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto w-full">
@@ -106,13 +125,13 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
               ? 'border-transparent'
               : 'bg-zinc-900 border-zinc-800'
           }`}
-          style={isPrivate ? { backgroundColor: accentColor } : {}}
+          style={isPrivate ? { backgroundColor: '#DC2626', borderColor: '#DC2626' } : {}}
         >
-          <div className={`shrink-0 ${isPrivate ? 'text-black' : 'text-zinc-400'}`}>
+          <div className={`shrink-0 ${isPrivate ? 'text-white' : 'text-zinc-400'}`}>
             <LockIcon />
           </div>
-          <p className="font-black text-sm" style={{ color: isPrivate ? '#000000' : undefined }}>
-            {isPrivate ? 'Card is Locked' : 'Lock This Card'}
+          <p className="font-black text-sm" style={{ color: isPrivate ? '#FFFFFF' : undefined }}>
+            {isPrivate ? 'Private' : 'Make private'}
           </p>
         </div>
 
@@ -155,10 +174,12 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
         <div>
           <label className="block text-zinc-500 text-xs font-black uppercase tracking-widest mb-2">Message to Show</label>
           <textarea
+            ref={contentRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="What should it say in huge letters?"
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-white font-bold outline-none min-h-220px focus:ring-2 transition-all resize-none"
+            placeholder="Type the message here"
+            rows={6}
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-3xl p-6 text-white font-bold outline-none min-h-220px focus:ring-2 transition-all resize-none overflow-hidden"
             style={{ '--tw-ring-color': accentColor } as any}
           />
         </div>
@@ -190,7 +211,7 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
         <div className="fixed inset-0 z-80 flex items-center justify-center bg-black/70 backdrop-blur-sm px-6">
           <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 w-full max-w-sm space-y-4">
             <h3 className="font-black text-lg text-center">Save Before Leaving?</h3>
-            <p className="text-zinc-400 text-sm text-center">You have unsaved changes. Save your card before leaving?</p>
+            <p className="text-zinc-400 text-sm text-center">Save before you leave?</p>
             <div className="flex flex-col gap-2 pt-2">
               <button
                 onClick={handleSaveAndClose}

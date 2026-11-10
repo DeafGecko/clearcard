@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('shows the brand and the built-in cards', async ({ page }) => {
-  await expect(page.getByRole('heading', { name: 'ClearCard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'ShowCard' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Doctor Appointment' })).toBeVisible();
 });
 

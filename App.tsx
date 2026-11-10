@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { VisioCard, Category, UserPreferences, SystemCategories } from './types';
-import { storage } from './lib/storage';
-import { generateRecoveryKey, hashRecoveryKey } from './lib/recovery';
+import { storage, DEFAULT_VAULT_CARDS } from './lib/storage';
+import { generateRecoveryKey, hashRecoveryKey, normalizeRecoveryKey } from './lib/recovery';
+import { createPasscodeRecord, verifyPasscode } from './lib/passcode';
+import { newVaultKey, wrapVaultKey, unwrapVaultKey, sealVault, openVault } from './lib/vault';
 import { Settings, FileKey, LogOut, Menu, X } from 'lucide-react';
 import {
   TrashIcon,
   PlusIcon,
   EditIcon,
   MedicalIcon,
+  PenIcon,
+  ShowCardIcon,
 } from './components/Icons';
 import FullscreenViewer from './components/FullscreenViewer';
 import CardEditorModal from './components/CardEditorModal';
+import QuickWriteModal from './components/QuickWriteModal';
 import CategoryManagerModal from './components/CategoryManagerModal';
 import PasscodeModal, { clearPasscodeAttempts } from './components/PasscodeModal';
 import { RecoveryKeyModal, RecoveryEntryModal } from './components/RecoveryModals';
@@ -26,6 +31,12 @@ const App: React.FC = () => {
   const [showEditorModal, setShowEditorModal] = useState(false);
   const [showCatModal, setShowCatModal] = useState(false);
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
+  const [showQuickWrite, setShowQuickWrite] = useState(false);
+  // Text from Quick write that is being saved as a card. Not stored until the card is saved.
+  const [quickDraft, setQuickDraft] = useState<string | null>(null);
+  // The last deleted card, kept for a few seconds so it can be put back.
+  const [undoItem, setUndoItem] = useState<{ card: VisioCard; index: number } | null>(null);
+  const undoTimer = useRef<number | null>(null);
   const [showRecoveryEntry, setShowRecoveryEntry] = useState(false);
   const [pendingRecoveryKey, setPendingRecoveryKey] = useState<string | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -34,10 +45,59 @@ const App: React.FC = () => {
   const [openSwipeCardId, setOpenSwipeCardId] = useState<string | null>(null);
   const swipeStartX = useRef(0);
   const didSwipe = useRef(false);
+  // The vault key exists in memory only while the Vault is unlocked.
+  const vaultKeyRef = useRef<CryptoKey | null>(null);
+  const legacyVaultRef = useRef<VisioCard[]>([]);
+  const vaultExists = !!prefs.vaultWrapCode || !!prefs.vaultWrapRecovery;
+  // The logout button is accent when a Secret Code exists, and light gray when none is set.
+  const hasSecretCode = !!prefs.passcodeHash || vaultExists;
+
+  const isVaultCard = (c: VisioCard) => c.category === SystemCategories.VAULT;
+
+  // Writes the normal cards in plain text and the Vault cards as one encrypted blob.
+  const persistCards = async (next: VisioCard[]) => {
+    const key = vaultKeyRef.current;
+    if (!key) {
+      // Locked: keep old plain-text Vault cards until they are moved into the encrypted Vault.
+      storage.saveCards([...next.filter(c => !isVaultCard(c)), ...legacyVaultRef.current]);
+      return;
+    }
+    storage.saveCards(next.filter(c => !isVaultCard(c)));
+    storage.saveVault(await sealVault(key, next.filter(isVaultCard)));
+  };
+
+  // Returns the vault key and cards for a verified Secret Code.
+  // A Vault from an older build has no wrapped key yet, so its cards are migrated here.
+  const openVaultWith = async (code: string) => {
+    if (prefs.vaultWrapCode) {
+      const key = await unwrapVaultKey(code, prefs.vaultWrapCode);
+      if (!key) return null;
+      const blob = storage.getVault();
+      const cards = blob ? await openVault(key, blob) : [];
+      return cards ? { key, cards, migrated: false } : null;
+    }
+    const key = await newVaultKey();
+    const cards = legacyVaultRef.current.length > 0 ? legacyVaultRef.current : DEFAULT_VAULT_CARDS;
+    return { key, cards, migrated: true };
+  };
 
   useEffect(() => {
-    setCards(storage.getCards());
+    const stored = storage.getCards();
+    // Plain-text Vault cards from an older build. They move into the encrypted Vault on first unlock.
+    legacyVaultRef.current = stored.filter(isVaultCard);
+    setCards(stored.filter(c => !isVaultCard(c)));
     setCategories(storage.getCategories());
+  }, []);
+
+  // Moves a Secret Code saved in plain text by an older version to a salted hash.
+  useEffect(() => {
+    const legacyCode = storage.getLegacyPasscode();
+    if (!legacyCode) return;
+    createPasscodeRecord(legacyCode).then(record => {
+      const next = { ...prefs, ...record };
+      setPrefs(next);
+      storage.savePrefs(next);
+    });
   }, []);
 
   useEffect(() => {
@@ -58,33 +118,94 @@ const App: React.FC = () => {
     if ('vibrate' in navigator) navigator.vibrate(ms);
   };
 
-  const handleUpdatePrefs = async (newPrefs: UserPreferences) => {
-    let next = newPrefs;
-    // A new Secret Code gets a new recovery key. Only its hash is saved.
-    if (newPrefs.passcode && newPrefs.passcode !== prefs.passcode) {
-      const key = generateRecoveryKey();
-      next = { ...newPrefs, recoveryKeyHash: await hashRecoveryKey(key) };
-      setPendingRecoveryKey(key);
-    }
-    setPrefs(next);
-    storage.savePrefs(next);
+  const handleUpdatePrefs = (newPrefs: UserPreferences) => {
+    setPrefs(newPrefs);
+    storage.savePrefs(newPrefs);
     triggerHaptic(50);
   };
 
-  // Opens the Vault after the recovery key matches. The old code is cleared so
-  // the owner sets a new one in Settings.
-  const handleRecovered = () => {
-    handleUpdatePrefs({ ...prefs, passcode: '', recoveryKeyHash: undefined });
+  const handleSettingsSave = async (
+    newPrefs: UserPreferences,
+    change?: { newCode: string; currentCode?: string }
+  ) => {
+    if (change) {
+      await handleNewCode(newPrefs, change.newCode, change.currentCode);
+    } else {
+      handleUpdatePrefs(newPrefs);
+    }
+  };
+
+  // Sets a new Secret Code and makes a new recovery key. The Vault key is re-wrapped,
+  // so the cards are not encrypted again. currentCode is needed when a Vault already exists.
+  const handleNewCode = async (base: UserPreferences, newCode: string, currentCode?: string): Promise<boolean> => {
+    let key = vaultKeyRef.current;
+    let vaultCards = key ? cards.filter(isVaultCard) : [];
+    if (!key) {
+      if (currentCode !== undefined) {
+        const opened = await openVaultWith(currentCode);
+        if (!opened) return false;
+        key = opened.key;
+        vaultCards = opened.cards;
+      } else {
+        // A locked Vault cannot be re-keyed without its code or recovery key.
+        if (vaultExists) return false;
+        key = await newVaultKey();
+        vaultCards = legacyVaultRef.current.length > 0 ? legacyVaultRef.current : DEFAULT_VAULT_CARDS;
+      }
+    }
+
+    const recoveryKey = generateRecoveryKey();
+    const next: UserPreferences = {
+      ...base,
+      ...(await createPasscodeRecord(newCode)),
+      vaultWrapCode: await wrapVaultKey(key, newCode),
+      vaultWrapRecovery: await wrapVaultKey(key, normalizeRecoveryKey(recoveryKey)),
+      recoveryKeyHash: await hashRecoveryKey(recoveryKey),
+    };
+
+    vaultKeyRef.current = key;
+    legacyVaultRef.current = [];
+    const nextCards = [...cards.filter(c => !isVaultCard(c)), ...vaultCards];
+    setCards(nextCards);
+    setIsVaultUnlocked(true);
+    setPrefs(next);
+    storage.savePrefs(next);
+    setPendingRecoveryKey(recoveryKey);
+    await persistCards(nextCards);
+    triggerHaptic(50);
+    return true;
+  };
+
+  // Opens the Vault with the recovery key. The old Secret Code is removed, but the
+  // recovery key stays valid until a new code is set, so the Vault can be reopened.
+  const handleRecovered = async (recoveryKey: string): Promise<boolean> => {
+    if (!prefs.vaultWrapRecovery) return false;
+    const key = await unwrapVaultKey(recoveryKey, prefs.vaultWrapRecovery);
+    if (!key) return false;
+    const blob = storage.getVault();
+    const vaultCards = blob ? await openVault(key, blob) : [];
+    if (!vaultCards) return false;
+
+    vaultKeyRef.current = key;
+    legacyVaultRef.current = [];
+    setCards(prev => [...prev.filter(c => !isVaultCard(c)), ...vaultCards]);
+    const next = { ...prefs, passcodeHash: undefined, passcodeSalt: undefined, vaultWrapCode: undefined };
+    setPrefs(next);
+    storage.savePrefs(next);
     clearPasscodeAttempts();
     setIsVaultUnlocked(true);
     setShowRecoveryEntry(false);
+    return true;
   };
 
   const handleSaveCard = (
     data: { title: string; content: string; category: Category },
     id?: string
   ) => {
-    setCards(prevCards => {
+    // Private cards can only be written while the Vault is unlocked.
+    if (data.category === SystemCategories.VAULT && !vaultKeyRef.current) return;
+    {
+      const prevCards = cards;
       let nextCards: VisioCard[];
       if (id) {
         nextCards = prevCards.map(c =>
@@ -113,23 +234,57 @@ const App: React.FC = () => {
         };
         nextCards = [newCard, ...prevCards];
       }
-      storage.saveCards(nextCards);
-      return nextCards;
-    });
+      setCards(nextCards);
+      persistCards(nextCards);
+    }
     setShowEditorModal(false);
     setEditingCard(null);
+    setQuickDraft(null);
     triggerHaptic(50);
+  };
+
+  const dismissUndo = () => {
+    if (undoTimer.current) window.clearTimeout(undoTimer.current);
+    undoTimer.current = null;
+    setUndoItem(null);
   };
 
   const deleteCard = (id: string, e: React.SyntheticEvent) => {
     e.stopPropagation();
     triggerHaptic(100);
     setOpenSwipeCardId(null);
-    setCards(prev => {
-      const next = prev.filter(c => c.id !== id);
-      storage.saveCards(next);
-      return next;
-    });
+    const index = cards.findIndex(c => c.id === id);
+    if (index === -1) return;
+    const card = cards[index];
+    const next = cards.filter(c => c.id !== id);
+    setCards(next);
+    persistCards(next);
+    if (undoTimer.current) window.clearTimeout(undoTimer.current);
+    setUndoItem({ card, index });
+    undoTimer.current = window.setTimeout(dismissUndo, 5000);
+  };
+
+  const undoDelete = () => {
+    if (!undoItem) return;
+    const { card, index } = undoItem;
+    dismissUndo();
+    // A Vault card can only come back while the Vault is open.
+    if (isVaultCard(card) && !vaultKeyRef.current) return;
+    const next = [...cards];
+    next.splice(Math.min(index, next.length), 0, card);
+    setCards(next);
+    persistCards(next);
+  };
+
+  useEffect(() => () => {
+    if (undoTimer.current) window.clearTimeout(undoTimer.current);
+  }, []);
+
+  const openEditorFromQuick = (text: string) => {
+    setSelectedCard(null);
+    setEditingCard(null);
+    setQuickDraft(text);
+    setShowEditorModal(true);
   };
 
   const startEditing = (card: VisioCard, e?: React.MouseEvent) => {
@@ -180,26 +335,22 @@ const App: React.FC = () => {
       name === SystemCategories.EMERGENCY
     )
       return;
-    setCategories(prev => {
-      const remainingCats = prev.filter(c => c !== name);
-      const reachableCats = remainingCats.filter(
-        c =>
-          ![SystemCategories.VAULT, SystemCategories.EMERGENCY].includes(
-            c as any
-          )
-      );
-      const fallback =
-        reachableCats.length > 0 ? reachableCats[0] : SystemCategories.DAILY;
-      setCards(prevCards => {
-        const nextCards = prevCards.map(c =>
-          c.category === name ? { ...c, category: fallback } : c
-        );
-        storage.saveCards(nextCards);
-        return nextCards;
-      });
-      storage.saveCategories(remainingCats);
-      return remainingCats;
-    });
+    const remainingCats = categories.filter(c => c !== name);
+    const reachableCats = remainingCats.filter(
+      c =>
+        ![SystemCategories.VAULT, SystemCategories.EMERGENCY].includes(
+          c as any
+        )
+    );
+    const fallback =
+      reachableCats.length > 0 ? reachableCats[0] : SystemCategories.DAILY;
+    const nextCards = cards.map(c =>
+      c.category === name ? { ...c, category: fallback } : c
+    );
+    setCards(nextCards);
+    persistCards(nextCards);
+    setCategories(remainingCats);
+    storage.saveCategories(remainingCats);
     if (activeCategory === name) setActiveCategory('All');
     triggerHaptic(80);
   };
@@ -209,22 +360,52 @@ const App: React.FC = () => {
     storage.saveCategories(newOrder);
   };
 
-  const handlePasscodeVerify = (code: string) => {
-    if (code === prefs.passcode) {
-      setIsVaultUnlocked(true);
-      setShowPasscodeModal(false);
-      return true;
+  const handlePasscodeVerify = async (code: string) => {
+    if (!(await verifyPasscode(code, prefs))) return false;
+    const opened = await openVaultWith(code);
+    if (!opened) return false;
+
+    vaultKeyRef.current = opened.key;
+    const nextCards = [...cards.filter(c => !isVaultCard(c)), ...opened.cards];
+    setCards(nextCards);
+    setIsVaultUnlocked(true);
+    setShowPasscodeModal(false);
+    if (opened.migrated) {
+      // Save the wrapped key and the encrypted cards, and drop the old plain-text copies.
+      legacyVaultRef.current = [];
+      const next = { ...prefs, vaultWrapCode: await wrapVaultKey(opened.key, code) };
+      setPrefs(next);
+      storage.savePrefs(next);
+      await persistCards(nextCards);
     }
-    return false;
+    return true;
   };
 
+  // Escape closes the top-most dialog that is safe to close.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (showQuickWrite) setShowQuickWrite(false);
+      else if (showRecoveryEntry) setShowRecoveryEntry(false);
+      else if (showPasscodeModal) setShowPasscodeModal(false);
+      else if (showCatModal) setShowCatModal(false);
+      else if (selectedCard) setSelectedCard(null);
+      else if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showQuickWrite, showRecoveryEntry, showPasscodeModal, showCatModal, selectedCard, isMobileMenuOpen]);
+
+  // One tap locks the Vault and opens the Secret Code screen.
   const handleLockToggle = () => {
     triggerHaptic(20);
     if (isVaultUnlocked) {
+      // Remove the decrypted Vault cards and the key from memory.
+      vaultKeyRef.current = null;
+      setCards(prev => prev.filter(c => !isVaultCard(c)));
       setIsVaultUnlocked(false);
-    } else {
-      setShowPasscodeModal(true);
     }
+    setShowPasscodeModal(true);
   };
 
   const filteredCards = cards.filter(c => {
@@ -253,17 +434,37 @@ const App: React.FC = () => {
       data-display-size={prefs.displaySize || 'normal'}
       style={{ '--accent-color': accentColor } as React.CSSProperties}
     >
+      <a href="#cards" className="skip-link">Skip to cards</a>
+
+      {isMobileMenuOpen && (
+        <div className="mobile-menu-tint md:hidden" onClick={() => setIsMobileMenuOpen(false)} aria-hidden="true" />
+      )}
+
       {/* HEADER */}
-      <header className="app-header relative shrink-0 z-40 px-4 sm:px-6 pt-6 landscape:pt-2 pb-2 landscape:pb-1 flex justify-between items-end overflow-visible">
+      <header className="app-header relative shrink-0 z-40 px-4 sm:px-6 pt-6 landscape:pt-2 pb-2 landscape:pb-1 flex justify-between items-end gap-6 overflow-visible">
         <div>
-          <h1 className="text-3xl sm:text-4xl landscape:text-2xl font-black leading-none mb-1 uppercase">
-            ClearCard
+          <h1 className="flex items-center gap-3 text-3xl sm:text-4xl landscape:text-2xl font-black leading-none mb-1">
+            <ShowCardIcon size={32} className="text-(--accent-color)" />
+            ShowCard
           </h1>
           <p className="brand-motto text-zinc-500">
-            Communication made clear.
+            Your message, ready to show.
           </p>
         </div>
+        <div className="flex items-center gap-2">
         <div className="hidden md:flex gap-2">
+          <button
+            onClick={() => {
+              triggerHaptic(50);
+              setActiveCategory(SystemCategories.EMERGENCY);
+            }}
+            aria-label="Emergency"
+            aria-pressed={activeCategory === SystemCategories.EMERGENCY}
+            className="header-utility rounded-lg flex items-center justify-center bg-zinc-900"
+            style={{ color: '#E53935' }}
+          >
+            <MedicalIcon size={24} />
+          </button>
           <button
             onClick={() => {
               triggerHaptic(15);
@@ -272,23 +473,26 @@ const App: React.FC = () => {
             aria-label="Settings"
             className="header-utility h-15 w-15 rounded-lg flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
           >
-            <Settings size={28} strokeWidth={2.5} />
-          </button>
-          <button
-            onClick={handleLockToggle}
-            aria-label={
-              isVaultUnlocked ? 'Lock Private Info' : 'Unlock Private Info'
-            }
-            className={`header-utility h-15 w-15 rounded-lg flex items-center justify-center transition-all ${
-              isVaultUnlocked
-                ? 'text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]'
-                : 'bg-zinc-900 text-zinc-600'
-            }`}
-            style={isVaultUnlocked ? { backgroundColor: accentColor } : {}}
-          >
-            <LogOut size={28} strokeWidth={2.5} />
+            <Settings size={24} strokeWidth={2.5} />
           </button>
         </div>
+          <div className="hidden md:flex">
+            <button
+              onClick={handleLockToggle}
+              aria-label={
+                isVaultUnlocked ? 'Hide private' : 'Show private'
+              }
+              className={`header-utility logout-button h-15 w-15 rounded-lg flex items-center justify-center transition-all ${
+                hasSecretCode
+                  ? 'text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]'
+                  : 'logout-button-idle'
+              }`}
+              style={hasSecretCode ? { backgroundColor: accentColor } : {}}
+            >
+              <LogOut size={20} strokeWidth={2.5} />
+            </button>
+        </div>
+          </div>
 
         <button
           onClick={() => setIsMobileMenuOpen(isOpen => !isOpen)}
@@ -302,6 +506,18 @@ const App: React.FC = () => {
 
         {isMobileMenuOpen && (
           <div id="mobile-header-menu" className="mobile-header-menu md:hidden absolute right-4 top-full w-64 p-2 rounded-lg shadow-2xl z-50">
+            <button
+              onClick={() => {
+                triggerHaptic(50);
+                setActiveCategory(SystemCategories.EMERGENCY);
+                setIsMobileMenuOpen(false);
+              }}
+              className="mobile-header-menu-item"
+              style={{ color: '#E53935' }}
+            >
+              <MedicalIcon size={24} />
+              <span>Emergency</span>
+            </button>
             <button
               onClick={() => {
                 triggerHaptic(15);
@@ -321,28 +537,28 @@ const App: React.FC = () => {
               className="mobile-header-menu-item"
             >
               <LogOut size={24} strokeWidth={2.5} />
-              <span>{isVaultUnlocked ? 'Lock private info' : 'Unlock private info'}</span>
+              <span>{isVaultUnlocked ? 'Hide private' : 'Show private'}</span>
             </button>
           </div>
         )}
       </header>
 
       {/* CATEGORY NAV */}
-      <nav className="app-nav shrink-0 z-30 pt-3 pb-3 landscape:pt-2 landscape:pb-1 overflow-x-auto whitespace-nowrap px-6 no-scrollbar flex items-center gap-2">
+      <nav aria-label="Groups" className="app-nav shrink-0 z-30 pt-2 pb-2 landscape:pt-2 landscape:pb-1 overflow-x-auto whitespace-nowrap px-6 no-scrollbar flex items-center gap-2">
         <button
           onClick={() => {
-            triggerHaptic(50);
-            setActiveCategory(SystemCategories.EMERGENCY);
+            triggerHaptic(10);
+            setEditingCard(null);
+            setShowEditorModal(true);
           }}
-          className={`nav-primary-button nav-emergency-button ${
-            activeCategory === SystemCategories.EMERGENCY
-              ? 'is-active'
-              : ''
-          }`}
-          aria-label="Emergency"
-          aria-pressed={activeCategory === SystemCategories.EMERGENCY}
+          className="nav-add-button active:scale-95 transition-all shadow-lg"
+          style={{
+            backgroundColor: accentColor,
+            boxShadow: `0 8px 24px ${accentColor}50`,
+          }}
+          aria-label="New Card"
         >
-          <MedicalIcon size={34} />
+          <PlusIcon size={26} strokeWidth={3} />
         </button>
 
         <button
@@ -373,7 +589,7 @@ const App: React.FC = () => {
             }
             aria-pressed={activeCategory === cat}
           >
-            {cat}
+            {cat === SystemCategories.VAULT ? 'Private' : cat}
           </button>
         ))}
 
@@ -384,22 +600,22 @@ const App: React.FC = () => {
           }}
           className="nav-modify-button"
         >
-          Modify
+          Edit list
         </button>
       </nav>
 
       {/* MAIN CONTENT */}
-      <main className="app-card-scroll flex-1 min-h-0 overflow-y-auto px-6 pt-4 pb-28 landscape:pt-3 landscape:pb-20">
+      <main id="cards" tabIndex={-1} className="app-card-scroll flex-1 min-h-0 overflow-y-auto px-6 pt-4 pb-28 landscape:pt-3 landscape:pb-20">
         {activeCategory === SystemCategories.VAULT && !isVaultUnlocked ? (
           <div className="flex flex-col items-center justify-center py-20 landscape:py-8 text-center animate-in fade-in zoom-in duration-500">
             <div className="w-24 h-24 landscape:w-16 landscape:h-16 bg-zinc-900 rounded-[40px] flex items-center justify-center mb-8 landscape:mb-4 text-zinc-600">
               <FileKey size={20} />
             </div>
             <h2 className="text-2xl landscape:text-lg font-black mb-3">
-              Vault is Locked
+              Private is Locked
             </h2>
             <p className="text-zinc-500 mb-10 landscape:mb-6 max-w-xs leading-relaxed font-medium landscape:text-sm">
-              Access your highly sensitive personal information securely.
+              Private info. Enter your code to see it.
             </p>
             <button
               onClick={() => {
@@ -408,7 +624,7 @@ const App: React.FC = () => {
               }}
               className="w-full max-w-sm h-16 landscape:h-12 bg-white text-black rounded-lg font-black text-lg landscape:text-sm active:scale-95 transition-transform"
             >
-              UNLOCK VAULT
+              UNLOCK PRIVATE
             </button>
           </div>
         ) : (
@@ -430,14 +646,14 @@ const App: React.FC = () => {
                   <div className="swipe-actions absolute inset-0 hidden justify-end" style={{ backgroundColor: accentColor }}>
                     <button
                       onClick={e => startEditing(card, e)}
-                      className="w-21 shrink-0 text-black flex items-center justify-center" style={{ backgroundColor: accentColor }}
+                      className="w-14 shrink-0 text-black flex items-center justify-center" style={{ backgroundColor: accentColor }}
                       aria-label="Edit"
                     >
                       <EditIcon size={28} />
                     </button>
                     <button
                       onClick={e => deleteCard(card.id, e)}
-                      className="w-21 shrink-0 bg-red-600 text-white flex items-center justify-center"
+                      className="w-14 shrink-0 bg-red-600 text-white flex items-center justify-center"
                       aria-label="Delete"
                     >
                       <TrashIcon size={28} />
@@ -482,7 +698,7 @@ const App: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="desktop-card-actions absolute right-2 flex items-center gap-0.5">
+                    <div className="desktop-card-actions absolute right-2 flex items-center">
                       <button
                         onClick={e => startEditing(card, e)}
                         className="h-15 w-15 flex items-center justify-center text-zinc-700 hover:text-white active:scale-110 transition-all"
@@ -507,30 +723,59 @@ const App: React.FC = () => {
       </main>
 
       {/* BOTTOM BAR */}
-      <div className="app-toolbar fixed bottom-0 left-0 right-0 z-20 px-8 pb-4 pt-2 flex items-center justify-center">
+      <div className="app-toolbar fixed bottom-0 left-0 right-0 z-20 px-8 pb-4 pt-2 flex items-center justify-center gap-3">
         <button
           onClick={() => {
             triggerHaptic(10);
-            setEditingCard(null);
-            setShowEditorModal(true);
+            setShowQuickWrite(true);
           }}
-          className="w-13 h-13 rounded-lg text-black flex items-center justify-center active:scale-95 transition-all shadow-lg border-0"
+          className="quick-write-float h-13 px-8 rounded-full font-black text-sm uppercase tracking-wide border-2 flex items-center gap-2 active:scale-95 transition-all"
           style={{
-            backgroundColor: accentColor,
-            boxShadow: `0 8px 24px ${accentColor}50`,
+            borderColor: accentColor,
+            backgroundColor: 'var(--theme-surface)',
+            color: 'var(--theme-foreground)',
           }}
-          aria-label="New Card"
         >
-          <PlusIcon size={34} strokeWidth={4} />
+          <PenIcon size={24} />
+          Write a note
         </button>
       </div>
 
+      {undoItem && (
+        <div role="status" aria-live="polite" className="undo-toast">
+          <span>Card deleted</span>
+          <button type="button" onClick={undoDelete}>Undo</button>
+        </div>
+      )}
+
       {/* MODALS */}
+      {showQuickWrite && (
+        <QuickWriteModal
+          accentColor={accentColor}
+          onShow={text => {
+            setShowQuickWrite(false);
+            setSelectedCard({
+              id: 'quick-write',
+              title: 'Quick message',
+              content: text,
+              category: SystemCategories.DAILY,
+              isSensitive: false,
+              isLocked: false,
+              createdAt: Date.now(),
+            });
+          }}
+          onSaveAsCard={text => {
+            setShowQuickWrite(false);
+            openEditorFromQuick(text);
+          }}
+          onClose={() => setShowQuickWrite(false)}
+        />
+      )}
       {selectedCard && (
         <FullscreenViewer
           card={selectedCard}
           onClose={() => setSelectedCard(null)}
-          onEdit={card => startEditing(card)}
+          onEdit={card => (card.id === 'quick-write' ? openEditorFromQuick(card.content) : startEditing(card))}
           initialFontSize={prefs.fontSize}
           accentColor={accentColor}
           displayTextColor={prefs.displayTextColor}
@@ -542,12 +787,20 @@ const App: React.FC = () => {
           onClose={() => {
             setShowEditorModal(false);
             setEditingCard(null);
+            setQuickDraft(null);
           }}
           onSave={data => handleSaveCard(data, editingCard?.id)}
-          initialData={editingCard || undefined}
+          initialData={
+            editingCard ||
+            (quickDraft !== null
+              ? { title: quickDraft.slice(0, 30), content: quickDraft, category: SystemCategories.DAILY }
+              : undefined)
+          }
           accentColor={accentColor}
-          passcode={prefs.passcode}
-          onSetPasscode={passcode => handleUpdatePrefs({ ...prefs, passcode })}
+          vaultUnlocked={isVaultUnlocked}
+          vaultExists={!!prefs.passcodeHash || vaultExists}
+          onRequestVault={() => setShowPasscodeModal(true)}
+          onSetPasscode={passcode => handleNewCode(prefs, passcode)}
         />
       )}
       {showCatModal && (
@@ -574,6 +827,7 @@ const App: React.FC = () => {
       {showRecoveryEntry && (
         <RecoveryEntryModal
           storedHash={prefs.recoveryKeyHash ?? ''}
+          accentColor={accentColor}
           onRecovered={handleRecovered}
           onClose={() => setShowRecoveryEntry(false)}
         />
@@ -581,13 +835,14 @@ const App: React.FC = () => {
       {pendingRecoveryKey && (
         <RecoveryKeyModal
           recoveryKey={pendingRecoveryKey}
+          accentColor={accentColor}
           onDone={() => setPendingRecoveryKey(null)}
         />
       )}
       {showSettingsModal && (
         <SettingsModal
           prefs={prefs}
-          onSave={handleUpdatePrefs}
+          onSave={handleSettingsSave}
           onClose={() => setShowSettingsModal(false)}
         />
       )}

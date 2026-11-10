@@ -18,7 +18,6 @@ export function CrossIcon({ className = '', size = 20 }: IconProps) {
 }
 
 export const CloseIcon = CrossIcon;
-export const XIcon = CrossIcon;
 
 // ── Medical / Plus ───────────────────────────────────
 export function MedicalIcon({ className = '', size = 20 }: IconProps) {
@@ -27,6 +26,85 @@ export function MedicalIcon({ className = '', size = 20 }: IconProps) {
       viewBox="0 0 24 24" fill="currentColor"
       className={className} aria-hidden="true">
       <path d="M9 2h6v7h7v6h-7v7H9v-7H2V9h7V2z" />
+    </svg>
+  );
+}
+
+// ShowCard brand mark: a speech bubble with two text lines. Uses the current text color.
+export function ShowCardIcon({ className = '', size = 20 }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size}
+      viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+      className={className} aria-hidden="true">
+      <path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
+      <path d="M7 9h10" />
+      <path d="M7 13h6" />
+    </svg>
+  );
+}
+
+// Theme icons for the Settings color mode buttons.
+const themeIconProps = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+
+export function LightThemeIcon({ className = '', size = 24 }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} {...themeIconProps} className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" />
+    </svg>
+  );
+}
+
+export function DarkThemeIcon({ className = '', size = 24 }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} {...themeIconProps} className={className} aria-hidden="true">
+      <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" />
+    </svg>
+  );
+}
+
+export function HighContrastThemeIcon({ className = '', size = 24 }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} {...themeIconProps} className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" />
+    </svg>
+  );
+}
+
+// Three straight lines, like a text block. Opens the text box to a bigger size.
+export function DialogueIcon({ className = '', size = 20 }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size}
+      viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={2} strokeLinecap="round"
+      className={className} aria-hidden="true">
+      <path transform="rotate(30 12 12)" d="M4 7h16M4 12h16M4 17h16" />
+    </svg>
+  );
+}
+
+// X mark for the Cancel button.
+export function XIcon({ className = '', size = 20 }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size}
+      viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
+      className={className} aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
+// Pen for writing a note.
+export function PenIcon({ className = '', size = 20 }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size}
+      viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+      className={className} aria-hidden="true">
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
     </svg>
   );
 }
@@ -299,21 +377,6 @@ export function SendIcon({ className = '', size = 20 }: IconProps) {
       className={className} aria-hidden="true">
       <line x1="22" y1="2" x2="11" y2="13" />
       <polygon points="22 2 15 22 11 13 2 9 22 2" />
-    </svg>
-  );
-}
-
-// ── Expand / Fullscreen ──────────────────────────────
-export function ExpandIcon({ className = '', size = 20 }: IconProps) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size}
-      viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
-      className={className} aria-hidden="true">
-      <polyline points="15 3 21 3 21 9" />
-      <polyline points="9 21 3 21 3 15" />
-      <line x1="21" y1="3" x2="14" y2="10" />
-      <line x1="3" y1="21" x2="10" y2="14" />
     </svg>
   );
 }
