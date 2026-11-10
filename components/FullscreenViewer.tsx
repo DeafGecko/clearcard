@@ -73,13 +73,14 @@ const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ card, onClose, onEd
 
   return (
     <div 
-      className="fixed inset-0 bg-black z-100 flex flex-col overflow-hidden animate-in fade-in duration-300"
+      className="fixed inset-0 z-100 flex flex-col overflow-hidden animate-in fade-in duration-300"
+      style={{ backgroundColor: '#27272a' }}
       onClick={handleBackgroundClick}
       onMouseMove={handleMouseMove}
     >
       {/* Top Header Overlay - Fades out completely including gradient background */}
       <div 
-        className={`absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-30 bg-linear-to-b from-black via-black/80 to-transparent transition-all duration-700 ease-in-out ${
+        className={`absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-30 bg-linear-to-b from-[#27272a] via-[#27272a]/80 to-transparent transition-all duration-700 ease-in-out ${
           showUI ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10 pointer-events-none'
         }`}
       >

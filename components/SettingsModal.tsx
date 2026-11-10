@@ -203,10 +203,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
 
       {showUnsavedPrompt && (
         <div className="fixed inset-0 z-120 flex items-center justify-center bg-black/70 backdrop-blur-sm px-6" onClick={e => e.stopPropagation()}>
-          <div className="settings-unsaved-dialog bg-zinc-900 border border-zinc-800 rounded-3xl p-6 w-full max-w-sm space-y-4" data-theme={themeMode}>
+          <div className="settings-unsaved-dialog bg-zinc-900 border border-zinc-800 rounded-3xl p-8 w-full max-w-sm space-y-5" data-theme={themeMode}>
             <h3 className="font-black text-lg text-center">Save Before Leaving?</h3>
             <p className="settings-unsaved-copy text-sm text-center">You have unsaved changes. Save them before closing?</p>
-            <div className="flex flex-col gap-2 pt-2">
+            <div className="flex flex-col gap-3 pt-4">
               <button
                 onClick={handleSave}
                 className="w-full h-12 rounded-2xl font-black text-sm active:scale-95 transition-all"

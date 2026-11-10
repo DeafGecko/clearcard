@@ -166,8 +166,8 @@ body,
 }
 
 .app-card:active {
-	background: var(--theme-signal);
-	color: var(--theme-background);
+	background: var(--accent-color);
+	color: #ffffff;
 }
 
 .app-card button {
@@ -341,6 +341,11 @@ body,
 .passcode-modal,
 .passcode-modal button {
 	font-family: Inter, sans-serif;
+}
+
+.app-shell:not([data-theme="highContrast"]) .passcode-back-button {
+	border-width: 0;
+	background-color: transparent;
 }
 
 .app-shell .passcode-key {
