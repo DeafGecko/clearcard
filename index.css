@@ -375,7 +375,6 @@ body,
 
 .app-nav .nav-primary-button.is-active {
 	transform: scale(1.05);
-	box-shadow: 0 0 0 2px var(--theme-background), 0 0 0 4px currentColor;
 }
 
 .app-nav .nav-emergency-button {
@@ -386,6 +385,13 @@ body,
 }
 
 .app-nav .nav-all-button {
+	border: 2px solid var(--theme-outline);
+	background: var(--theme-surface);
+	color: var(--theme-foreground);
+}
+
+.app-nav .nav-all-button.is-active {
+	border-color: var(--nav-button-color);
 	background: var(--nav-button-color);
 	color: #000000;
 }

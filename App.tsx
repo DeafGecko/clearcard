@@ -233,7 +233,7 @@ const App: React.FC = () => {
       data-display-size={prefs.displaySize || 'normal'}
     >
       {/* HEADER */}
-      <header className="app-header relative shrink-0 z-40 px-4 sm:px-6 pt-12 landscape:pt-4 pb-6 landscape:pb-2 flex justify-between items-end overflow-visible">
+      <header className="app-header relative shrink-0 z-40 px-4 sm:px-6 pt-6 landscape:pt-2 pb-2 landscape:pb-1 flex justify-between items-end overflow-visible">
         <div>
           <h1 className="text-3xl sm:text-4xl landscape:text-2xl font-black leading-none mb-1 uppercase">
             ClearCard
@@ -307,7 +307,7 @@ const App: React.FC = () => {
       </header>
 
       {/* CATEGORY NAV */}
-      <nav className="app-nav shrink-0 z-30 pt-7 pb-4 landscape:pt-6 landscape:pb-2 overflow-x-auto whitespace-nowrap px-6 no-scrollbar flex items-center gap-2">
+      <nav className="app-nav shrink-0 z-30 pt-3 pb-3 landscape:pt-2 landscape:pb-1 overflow-x-auto whitespace-nowrap px-6 no-scrollbar flex items-center gap-2">
         <button
           onClick={() => {
             triggerHaptic(50);
@@ -368,7 +368,7 @@ const App: React.FC = () => {
       </nav>
 
       {/* MAIN CONTENT */}
-      <main className="app-card-scroll flex-1 min-h-0 overflow-y-auto px-6 pt-8 pb-40 landscape:pt-6 landscape:pb-24">
+      <main className="app-card-scroll flex-1 min-h-0 overflow-y-auto px-6 pt-4 pb-28 landscape:pt-3 landscape:pb-20">
         {activeCategory === SystemCategories.VAULT && !isVaultUnlocked ? (
           <div className="flex flex-col items-center justify-center py-20 landscape:py-8 text-center animate-in fade-in zoom-in duration-500">
             <div className="w-24 h-24 landscape:w-16 landscape:h-16 bg-zinc-900 rounded-[40px] flex items-center justify-center mb-8 landscape:mb-4 text-zinc-600">
@@ -486,14 +486,14 @@ const App: React.FC = () => {
       </main>
 
       {/* BOTTOM BAR */}
-      <div className="app-toolbar fixed bottom-0 left-0 right-0 z-20 px-8 pb-8 pt-4 flex items-center justify-center">
+      <div className="app-toolbar fixed bottom-0 left-0 right-0 z-20 px-8 pb-4 pt-2 flex items-center justify-center">
         <button
           onClick={() => {
             triggerHaptic(10);
             setEditingCard(null);
             setShowEditorModal(true);
           }}
-          className="w-15 h-15 rounded-lg text-black flex items-center justify-center active:scale-95 transition-all shadow-lg border-0"
+          className="w-13 h-13 rounded-lg text-black flex items-center justify-center active:scale-95 transition-all shadow-lg border-0"
           style={{
             backgroundColor: accentColor,
             boxShadow: `0 8px 24px ${accentColor}50`,
