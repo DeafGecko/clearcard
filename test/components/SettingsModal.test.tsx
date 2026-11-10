@@ -39,14 +39,14 @@ describe('SettingsModal: live preview', () => {
 describe('SettingsModal: security', () => {
   it('asks for the current Secret Code before changing it', () => {
     render(<SettingsModal prefs={basePrefs} onSave={() => {}} onClose={() => {}} />);
-    fireEvent.click(screen.getByRole('button', { name: 'CHANGE' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Change code' }));
     expect(screen.getByPlaceholderText('Current code')).toBeInTheDocument();
     expect(screen.queryByPlaceholderText('New code, 6 digits')).not.toBeInTheDocument();
   });
 
   it('rejects a wrong current code and does not reach the new-code step', async () => {
     render(<SettingsModal prefs={basePrefs} onSave={() => {}} onClose={() => {}} />);
-    fireEvent.click(screen.getByRole('button', { name: 'CHANGE' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Change code' }));
     fireEvent.change(screen.getByPlaceholderText('Current code'), { target: { value: '000000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Current code is incorrect.'));
@@ -55,7 +55,7 @@ describe('SettingsModal: security', () => {
 
   it('moves to the new-code step after the correct current code', async () => {
     render(<SettingsModal prefs={basePrefs} onSave={() => {}} onClose={() => {}} />);
-    fireEvent.click(screen.getByRole('button', { name: 'CHANGE' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Change code' }));
     fireEvent.change(screen.getByPlaceholderText('Current code'), { target: { value: '123456' } });
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
     expect(await screen.findByPlaceholderText('New code, 6 digits')).toBeInTheDocument();
@@ -63,7 +63,7 @@ describe('SettingsModal: security', () => {
 
   it('needs no current code when no Secret Code is set yet', () => {
     render(<SettingsModal prefs={{ ...basePrefs, passcodeHash: undefined, passcodeSalt: undefined }} onSave={() => {}} onClose={() => {}} />);
-    fireEvent.click(screen.getByRole('button', { name: 'CHANGE' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Change code' }));
     expect(screen.getByPlaceholderText('New code, 6 digits')).toBeInTheDocument();
   });
 });

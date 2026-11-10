@@ -43,7 +43,7 @@ test('setting a new Secret Code shows a recovery key once', async ({ page }) => 
   await page.goto('/');
 
   await openSettings(page);
-  await page.getByRole('button', { name: 'CHANGE', exact: true }).click();
+  await page.getByRole('button', { name: 'Change code', exact: true }).click();
   await page.getByPlaceholder('Current code').fill(SECRET);
   await page.getByRole('button', { name: 'Continue' }).click();
   await page.getByPlaceholder('New code, 6 digits').fill('654321');
