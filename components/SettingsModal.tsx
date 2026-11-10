@@ -21,7 +21,6 @@ const MODERN_COLORS = [
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose }) => {
   const [accent, setAccent] = useState(prefs.accentColor);
-  const [displayTextCol, setDisplayTextCol] = useState(prefs.displayTextColor || "#FFFFFF");
   const [displaySize, setDisplaySize] = useState<DisplaySize>(prefs.displaySize || 'normal');
   const [themeMode, setThemeMode] = useState<ThemeMode>(prefs.themeMode || 'light');
   const [newPasscode, setNewPasscode] = useState(prefs.passcode);
@@ -38,13 +37,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
 
   const hasChanges =
     accent !== prefs.accentColor ||
-    displayTextCol !== (prefs.displayTextColor || "#FFFFFF") ||
     displaySize !== (prefs.displaySize || 'normal') ||
     themeMode !== (prefs.themeMode || 'light') ||
     newPasscode !== prefs.passcode;
 
   const handleSave = () => {
-    onSave({ ...prefs, accentColor: accent, displayTextColor: displayTextCol, displaySize, themeMode, passcode: newPasscode });
+    onSave({ ...prefs, accentColor: accent, displaySize, themeMode, passcode: newPasscode });
     triggerClose();
   };
 
@@ -93,7 +91,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => setThemeMode(option.value)}
+                    onClick={() => {
+                      setThemeMode(option.value);
+                      onSave({ ...prefs, themeMode: option.value });
+                    }}
                     aria-pressed={isSelected}
                     className={`theme-mode-option ${isSelected ? 'is-selected' : ''}`}
                     style={isSelected ? { backgroundColor: accent, color: '#000000' } : undefined}
@@ -142,15 +143,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
             </div>
           </section>
 
-          {/* Display Text Color */}
-          <section>
-            <label className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4">Display Text Color</label>
-            <div className="flex gap-3">
-              <button onClick={() => setDisplayTextCol("#FFFFFF")} className={`flex-1 h-10 rounded-xl font-bold text-xs border transition-all ${displayTextCol === "#FFFFFF" ? "bg-white text-black border-white" : "bg-zinc-800 text-white border-zinc-700"}`}>White</button>
-              <button onClick={() => setDisplayTextCol("#FFFF00")} className={`flex-1 h-10 rounded-xl font-bold text-xs border transition-all ${displayTextCol === "#FFFF00" ? "bg-yellow-400 text-black border-yellow-400" : "bg-zinc-800 text-yellow-400 border-zinc-700"}`}>Yellow</button>
-            </div>
-          </section>
-
           {/* Display Size */}
           <section>
             <label className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4">Display Size</label>
@@ -158,7 +150,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
               {(['compact', 'normal', 'enlarged'] as DisplaySize[]).map(size => (
                 <button
                   key={size}
-                  onClick={() => setDisplaySize(size)}
+                  onClick={() => {
+                    setDisplaySize(size);
+                    onSave({ ...prefs, displaySize: size });
+                  }}
                   aria-pressed={displaySize === size}
                   className={`display-size-option flex-1 rounded-xl font-bold capitalize transition-all ${displaySize === size ? 'is-selected' : ''}`}
                   style={displaySize === size ? { backgroundColor: accent, color: '#000000' } : undefined}
