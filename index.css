@@ -132,8 +132,8 @@ body,
 }
 
 .mobile-header-menu-item:active {
-	background: var(--theme-signal);
-	color: var(--theme-background);
+	background: var(--accent-color);
+	color: #000000;
 }
 
 .app-toolbar {

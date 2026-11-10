@@ -231,6 +231,7 @@ const App: React.FC = () => {
       className="app-shell select-none"
       data-theme={prefs.themeMode || 'light'}
       data-display-size={prefs.displaySize || 'normal'}
+      style={{ '--accent-color': accentColor } as React.CSSProperties}
     >
       {/* HEADER */}
       <header className="app-header relative shrink-0 z-40 px-4 sm:px-6 pt-6 landscape:pt-2 pb-2 landscape:pb-1 flex justify-between items-end overflow-visible">
@@ -406,10 +407,10 @@ const App: React.FC = () => {
                   role="listitem"
                   className="swipe-card relative rounded-lg overflow-hidden"
                 >
-                  <div className="swipe-actions absolute inset-0 hidden justify-end bg-yellow-400">
+                  <div className="swipe-actions absolute inset-0 hidden justify-end" style={{ backgroundColor: accentColor }}>
                     <button
                       onClick={e => startEditing(card, e)}
-                      className="w-21 shrink-0 bg-yellow-400 text-black flex items-center justify-center"
+                      className="w-21 shrink-0 text-black flex items-center justify-center" style={{ backgroundColor: accentColor }}
                       aria-label="Edit"
                     >
                       <EditIcon size={28} />
