@@ -19,9 +19,9 @@ I treat accessibility as part of the application architecture, not as a layer ad
 - Manage custom categories and their order
 - Store private cards in a passcode-protected Vault
 - Use one shared six-digit Secret Code for Vault access and private cards
-- Adjust display size with Compact, Normal, and Enlarged modes
-- Choose Light, low-glare Dark, or High Contrast appearance modes
-- Select an accent color and full-screen display text color
+- Adjust display size with Compact, Normal, and Enlarged modes, applied instantly in Settings
+- Choose Light, low-glare Dark, or High Contrast appearance modes, applied instantly in Settings
+- Select an accent color used for selected controls, pressed cards, and the Secret Code keypad
 - Rotate full-screen text when showing a message across a table
 - Keep cards and preferences in browser `localStorage`
 
@@ -121,9 +121,11 @@ npm run preview
 
 ## Data and Privacy
 
-Cards, categories, appearance preferences, and the Secret Code are currently stored in browser `localStorage`. There is no account system or cloud synchronization.
+Cards, categories, appearance preferences, and the Secret Code are currently stored in browser `localStorage`. The Secret Code is saved in plain text. There is no account system or cloud synchronization.
 
 This keeps the app simple and offline-friendly after its assets load, but `localStorage` is not encrypted secure storage. Clearing browser data removes locally stored cards, and anyone with access to the same browser profile may be able to inspect stored values. The Vault is an interface-level privacy feature, not a substitute for platform encryption or a password manager.
+
+There is no recovery for a forgotten Secret Code. Settings lets anyone with access to the app change the code without entering the current one, so the Secret Code does not protect private cards from someone who can use the device. Recovering a forgotten code currently means clearing the stored Secret Code from browser storage, which keeps cards and categories.
 
 ## Current Limitations
 
@@ -131,6 +133,7 @@ This keeps the app simple and offline-friendly after its assets load, but `local
 - There is no export or import workflow yet.
 - The app is not currently packaged as an installable PWA.
 - Automated unit and end-to-end test coverage still needs to be added.
+- The Secret Code can be changed without knowing the current code, and it cannot be recovered if forgotten.
 - The repository includes grammar service code, but Smart Rewrite is not exposed in the current card editor UI.
 
 ## Direction

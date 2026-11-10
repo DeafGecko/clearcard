@@ -355,7 +355,7 @@ body,
 }
 
 .app-shell .passcode-key:active {
-	background: #facc15;
+	background: var(--passcode-accent, #facc15);
 	color: #000000;
 	transform: scale(0.94);
 }
