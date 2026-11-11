@@ -80,7 +80,7 @@ A changed code only changes the lock, so the cards do not need to be scrambled a
 | What | How many | Command |
 | --- | --- | --- |
 | Small tests (unit) | 62 | `npm test` |
-| Browser tests | 40, phone and desktop sizes | `npx playwright test` |
+| Browser tests | 42, phone and desktop sizes | `npx playwright test` |
 | Type check | 1 | `npx tsc --noEmit -p .` |
 
 ## Tech I used
@@ -115,8 +115,11 @@ Then open http://localhost:3000. If that port is busy, Vite picks another one an
 
 **Latest (November 10, 2026)**
 
-- Plainer wording throughout: Look, Text size, Code, Strong colors, Biggest, Private, Make private, Hide private, Show private, Edit list, Edit Groups, Emergency.
+- Plainer wording throughout: Look, Text size, Code, Strong colors, Biggest, Private, Make private, Log out, Edit list, Edit Groups, Emergency.
 - Write a note (pen icon) replaces Quick write. The text box grows as you type.
+- Every icon is our own. The icon library was removed, which makes the app smaller.
+- Clear key on the code keypad. The Delete key is a circle with an X, like the number keys.
+- Lighthouse on the live site: 100 for performance on mobile and desktop.
 - Secret Code is exactly 6 digits. It is checked as soon as the sixth digit is typed.
 - Tapping the lock button locks the Vault and opens the code screen in one tap.
 - The logout button is light gray when no code is set, and accent when a code is set.

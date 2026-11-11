@@ -132,6 +132,7 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
       <div className="w-full max-w-xs flex flex-col items-center">
         <button
           onClick={onClose}
+          aria-label="Back"
           className="passcode-back-button absolute top-10 left-6 p-3 bg-zinc-900 rounded-2xl active:scale-90 transition-transform"
         >
           <ArrowLeftIcon />

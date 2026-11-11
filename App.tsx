@@ -32,6 +32,8 @@ const App: React.FC = () => {
   const [showCatModal, setShowCatModal] = useState(false);
   const [showPasscodeModal, setShowPasscodeModal] = useState(false);
   const [showQuickWrite, setShowQuickWrite] = useState(false);
+  // True when the code is right but the saved Vault data cannot be opened.
+  const [vaultDamaged, setVaultDamaged] = useState(false);
   // Text from Quick write that is being saved as a card. Not stored until the card is saved.
   const [quickDraft, setQuickDraft] = useState<string | null>(null);
   // The last deleted card, kept for a few seconds so it can be put back.
@@ -363,7 +365,13 @@ const App: React.FC = () => {
   const handlePasscodeVerify = async (code: string) => {
     if (!(await verifyPasscode(code, prefs))) return false;
     const opened = await openVaultWith(code);
-    if (!opened) return false;
+    if (!opened) {
+      // The code is right, so this is not a wrong try. Explain on the Private screen instead.
+      setVaultDamaged(true);
+      setShowPasscodeModal(false);
+      return true;
+    }
+    setVaultDamaged(false);
 
     vaultKeyRef.current = opened.key;
     const nextCards = [...cards.filter(c => !isVaultCard(c)), ...opened.cards];
@@ -612,11 +620,24 @@ const App: React.FC = () => {
               <LockIcon size={20} />
             </div>
             <h2 className="text-2xl landscape:text-lg font-black mb-3">
-              Private is Locked
+              {vaultDamaged ? 'Private cards cannot open' : 'Private is Locked'}
             </h2>
             <p className="text-zinc-500 mb-10 landscape:mb-6 max-w-xs leading-relaxed font-medium landscape:text-sm">
-              Private info. Enter your code to see it.
+              {vaultDamaged
+                ? 'Your code is right, but the saved private cards could not be read. Use your backup key to reset the private area.'
+                : 'Private info. Enter your code to see it.'}
             </p>
+            {vaultDamaged && (
+              <button
+                onClick={() => {
+                  triggerHaptic(40);
+                  setShowRecoveryEntry(true);
+                }}
+                className="w-full max-w-sm h-16 landscape:h-12 mb-4 bg-zinc-900 text-white rounded-lg font-black text-lg landscape:text-sm active:scale-95 transition-transform"
+              >
+                USE BACKUP KEY
+              </button>
+            )}
             <button
               onClick={() => {
                 triggerHaptic(40);
