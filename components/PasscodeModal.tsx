@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { ArrowLeftIcon, CircleXIcon } from './Icons';
+import { ArrowLeftIcon, XIcon } from './Icons';
 
 interface PasscodeModalProps {
   onVerify: (code: string) => boolean | Promise<boolean>;
@@ -184,10 +184,10 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
           <button
             onClick={handleDelete}
             disabled={isLocked}
-            className="passcode-key rounded-full bg-zinc-900 flex items-center justify-center text-zinc-500 active:text-red-500 transition-colors"
+            className="passcode-key passcode-delete flex items-center justify-center text-zinc-500 active:text-red-500 transition-colors"
             aria-label="Delete last digit"
           >
-            <CircleXIcon />
+            <XIcon size={40} />
           </button>
         </div>
 

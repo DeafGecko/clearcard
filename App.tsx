@@ -480,7 +480,7 @@ const App: React.FC = () => {
             <button
               onClick={handleLockToggle}
               aria-label={
-                isVaultUnlocked ? 'Hide private' : 'Show private'
+                isVaultUnlocked ? 'Log out' : 'Log in'
               }
               className={`header-utility logout-button h-15 w-15 rounded-lg flex items-center justify-center transition-all ${
                 hasSecretCode
@@ -537,7 +537,7 @@ const App: React.FC = () => {
               className="mobile-header-menu-item"
             >
               <LogOut size={24} strokeWidth={2.5} />
-              <span>{isVaultUnlocked ? 'Hide private' : 'Show private'}</span>
+              <span>{isVaultUnlocked ? 'Log out' : 'Log in'}</span>
             </button>
           </div>
         )}

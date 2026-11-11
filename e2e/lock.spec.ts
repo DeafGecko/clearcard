@@ -20,9 +20,9 @@ test('one click on the lock button locks the Vault and opens the Secret Code scr
   const menuButton = page.getByRole('button', { name: 'Open menu' });
   if (await menuButton.isVisible()) {
     await menuButton.click();
-    await page.getByRole('button', { name: 'Hide private' }).click();
+    await page.getByRole('button', { name: 'Log out' }).click();
   } else {
-    await page.getByRole('button', { name: 'Hide private' }).click();
+    await page.getByRole('button', { name: 'Log out' }).click();
   }
   await expect(page.getByRole('heading', { name: 'Enter your code' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Personal ID' })).toHaveCount(0);
