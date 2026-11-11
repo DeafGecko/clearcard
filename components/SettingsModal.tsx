@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { X, Settings } from 'lucide-react';
 import { DisplaySize, ThemeMode, UserPreferences } from '../types';
-import { LockIcon, CirclePlusIcon, LightThemeIcon, DarkThemeIcon, HighContrastThemeIcon, CheckIcon, XIcon, ArrowRightIcon } from './Icons';
+import { LockIcon, CirclePlusIcon, LightThemeIcon, DarkThemeIcon, HighContrastThemeIcon, CheckIcon, XIcon, ArrowRightIcon, SettingsIcon } from './Icons';
 import { verifyPasscode } from '../lib/passcode';
 import { clearPasscodeAttempts, getPasscodeLockSeconds, recordPasscodeFailure } from './PasscodeModal';
 
@@ -112,9 +111,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
       <div className={`settings-panel bg-zinc-900 w-full max-w-105 h-full border-l border-zinc-800 shadow-2xl flex flex-col p-6 overflow-y-auto no-scrollbar${isClosing ? ' is-closing' : ''}`} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
 
         <div className="flex items-center justify-between mb-8">
-          <h2 className="flex items-center gap-3 text-xl font-black"><Settings size={24} strokeWidth={2.5} aria-hidden="true" />Settings</h2>
+          <h2 className="flex items-center gap-3 text-xl font-black"><SettingsIcon size={24} strokeWidth={2.5} />Settings</h2>
           <button onClick={handleClose} aria-label="Close Settings" className="settings-close flex items-center justify-center active:scale-90 transition-transform text-zinc-400">
-            <X size={22} strokeWidth={2.5} aria-hidden="true" />
+            <XIcon size={22} strokeWidth={2.5} />
           </button>
         </div>
 

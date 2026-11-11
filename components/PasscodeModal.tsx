@@ -173,7 +173,20 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
               {num}
             </button>
           ))}
-          <div /> {/* Spacer */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isLocked) return;
+              triggerHaptic(10);
+              setCode('');
+              setError(false);
+            }}
+            disabled={isLocked}
+            className="passcode-key passcode-clear rounded-full bg-zinc-900 flex items-center justify-center font-black transition-colors"
+            aria-label="Clear code"
+          >
+            CLEAR
+          </button>
           <button
             onClick={() => handleNumber('0')}
             disabled={isLocked}
@@ -184,10 +197,10 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
           <button
             onClick={handleDelete}
             disabled={isLocked}
-            className="passcode-key passcode-delete flex items-center justify-center text-zinc-500 active:text-red-500 transition-colors"
+            className="passcode-key rounded-full bg-zinc-900 flex items-center justify-center text-zinc-500 active:text-red-500 transition-colors"
             aria-label="Delete last digit"
           >
-            <XIcon size={40} />
+            <XIcon size={32} />
           </button>
         </div>
 

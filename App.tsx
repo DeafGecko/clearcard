@@ -4,7 +4,7 @@ import { storage, DEFAULT_VAULT_CARDS } from './lib/storage';
 import { generateRecoveryKey, hashRecoveryKey, normalizeRecoveryKey } from './lib/recovery';
 import { createPasscodeRecord, verifyPasscode } from './lib/passcode';
 import { newVaultKey, wrapVaultKey, unwrapVaultKey, sealVault, openVault } from './lib/vault';
-import { Settings, FileKey, LogOut, Menu, X } from 'lucide-react';
+import { SettingsIcon, LogOutIcon, MenuIcon, XIcon, LockIcon } from './components/Icons';
 import {
   TrashIcon,
   PlusIcon,
@@ -473,14 +473,14 @@ const App: React.FC = () => {
             aria-label="Settings"
             className="header-utility h-15 w-15 rounded-lg flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
           >
-            <Settings size={24} strokeWidth={2.5} />
+            <SettingsIcon size={24} strokeWidth={2.5} />
           </button>
         </div>
           <div className="hidden md:flex">
             <button
               onClick={handleLockToggle}
               aria-label={
-                isVaultUnlocked ? 'Log out' : 'Log in'
+                'Log out'
               }
               className={`header-utility logout-button h-15 w-15 rounded-lg flex items-center justify-center transition-all ${
                 hasSecretCode
@@ -489,7 +489,7 @@ const App: React.FC = () => {
               }`}
               style={hasSecretCode ? { backgroundColor: accentColor } : {}}
             >
-              <LogOut size={20} strokeWidth={2.5} />
+              <LogOutIcon size={20} strokeWidth={2.5} />
             </button>
         </div>
           </div>
@@ -501,7 +501,7 @@ const App: React.FC = () => {
           aria-controls="mobile-header-menu"
           className="header-utility md:hidden h-15 w-15 rounded-lg flex items-center justify-center bg-zinc-900 text-zinc-600 active:text-white transition-all"
         >
-          {isMobileMenuOpen ? <X size={30} strokeWidth={2.5} /> : <Menu size={30} strokeWidth={2.5} />}
+          {isMobileMenuOpen ? <XIcon size={30} strokeWidth={2.5} /> : <MenuIcon size={30} strokeWidth={2.5} />}
         </button>
 
         {isMobileMenuOpen && (
@@ -526,7 +526,7 @@ const App: React.FC = () => {
               }}
               className="mobile-header-menu-item"
             >
-              <Settings size={24} strokeWidth={2.5} />
+              <SettingsIcon size={24} strokeWidth={2.5} />
               <span>Settings</span>
             </button>
             <button
@@ -536,8 +536,8 @@ const App: React.FC = () => {
               }}
               className="mobile-header-menu-item"
             >
-              <LogOut size={24} strokeWidth={2.5} />
-              <span>{isVaultUnlocked ? 'Log out' : 'Log in'}</span>
+              <LogOutIcon size={24} strokeWidth={2.5} />
+              <span>{'Log out'}</span>
             </button>
           </div>
         )}
@@ -609,7 +609,7 @@ const App: React.FC = () => {
         {activeCategory === SystemCategories.VAULT && !isVaultUnlocked ? (
           <div className="flex flex-col items-center justify-center py-20 landscape:py-8 text-center animate-in fade-in zoom-in duration-500">
             <div className="w-24 h-24 landscape:w-16 landscape:h-16 bg-zinc-900 rounded-[40px] flex items-center justify-center mb-8 landscape:mb-4 text-zinc-600">
-              <FileKey size={20} />
+              <LockIcon size={20} />
             </div>
             <h2 className="text-2xl landscape:text-lg font-black mb-3">
               Private is Locked

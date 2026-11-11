@@ -432,11 +432,10 @@ body,
 	font-size: var(--ui-keypad-number-size) !important;
 }
 
-/* Delete key: a bare X, no circle. */
-.app-shell .passcode-key.passcode-delete {
-	background: transparent;
-	border: 0;
-	border-radius: 0;
+/* Clear key: a word, not a big number. */
+.app-shell .passcode-key.passcode-clear {
+	font-size: 14px !important;
+	letter-spacing: 0.08em;
 }
 
 .app-shell .passcode-key:active {
