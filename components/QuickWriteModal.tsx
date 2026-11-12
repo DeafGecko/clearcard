@@ -1,4 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
+import { readableTextColor } from '../lib/color';
 
 interface QuickWriteModalProps {
   accentColor: string;
@@ -9,6 +10,7 @@ interface QuickWriteModalProps {
 
 // Type a message and show it right away. Nothing is saved unless the user saves it as a card.
 const QuickWriteModal: React.FC<QuickWriteModalProps> = ({ accentColor, onShow, onSaveAsCard, onClose }) => {
+  const accentText = readableTextColor(accentColor);
   const [text, setText] = useState('');
   const boxRef = useRef<HTMLTextAreaElement>(null);
 
@@ -34,7 +36,7 @@ const QuickWriteModal: React.FC<QuickWriteModalProps> = ({ accentColor, onShow, 
             onClick={() => onSaveAsCard(message)}
             disabled={!message}
             className="btn-text quick-write-save h-12 px-4 rounded-2xl font-black text-sm disabled:opacity-40 active:scale-95 transition-all"
-            style={{ backgroundColor: accentColor, color: '#000000' }}
+            style={{ backgroundColor: accentColor, color: accentText }}
           >
             Save as card
           </button>
@@ -60,7 +62,7 @@ const QuickWriteModal: React.FC<QuickWriteModalProps> = ({ accentColor, onShow, 
           onClick={() => onShow(message)}
           disabled={!message}
           className="btn-text w-full h-12 rounded-2xl font-black text-sm disabled:opacity-40 active:scale-95 transition-all"
-          style={{ backgroundColor: accentColor, color: '#000000' }}
+          style={{ backgroundColor: accentColor, color: accentText }}
         >
           Show now
         </button>

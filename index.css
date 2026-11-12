@@ -141,7 +141,7 @@ body,
 
 .mobile-header-menu-item:active {
 	background: var(--accent-color);
-	color: #000000;
+	color: var(--accent-text, #000000);
 }
 
 .app-toolbar {
@@ -188,7 +188,7 @@ body,
 
 .app-card:active {
 	background: var(--accent-color);
-	color: #ffffff;
+	color: var(--accent-text, #000000);
 }
 
 .app-card button {
@@ -240,7 +240,7 @@ body,
 }
 
 .app-shell .card-category-option.is-selected {
-	color: #000000;
+	color: var(--accent-text, #000000);
 }
 
 .app-shell[data-theme="light"] .settings-close {
@@ -440,7 +440,7 @@ body,
 
 .app-shell .passcode-key:active {
 	background: var(--passcode-accent, #facc15);
-	color: #000000;
+	color: var(--passcode-accent-text, #000000);
 	transform: scale(0.94);
 }
 
@@ -472,8 +472,9 @@ body,
 
 /* Text buttons: more space on the left and right than on the top and bottom. */
 .app-shell .btn-text {
-	padding-inline: 32px;
-	padding-block: 12px;
+	min-height: 44px;
+	padding-inline: 20px;
+	padding-block: 8px;
 }
 
 /* Quick write: left-aligned text in a light gray box. The box uses the theme's gray border. */
@@ -531,7 +532,7 @@ body,
 
 .app-shell .fab-add {
 	background: var(--accent-color);
-	color: #000000;
+	color: var(--accent-text, #000000);
 }
 
 /* Undo bar for a deleted card. Bottom right, above the Quick write button. */
@@ -557,6 +558,7 @@ body,
 	border: 0;
 	border-radius: 999px;
 	background: var(--accent-color);
+	color: var(--accent-text, #000000);
 	color: #000000;
 	font-weight: 800;
 }
@@ -676,7 +678,7 @@ body,
 	border: 0;
 	border-radius: 999px;
 	background: var(--accent-color);
-	color: #000000;
+	color: var(--accent-text, #000000);
 }
 
 .app-nav .nav-emergency-button {
@@ -693,7 +695,7 @@ body,
 .app-nav .nav-category-button.is-active {
 	border-color: var(--nav-button-color, var(--accent-color));
 	background: var(--nav-button-color, var(--accent-color));
-	color: #000000;
+	color: var(--nav-button-text, var(--accent-text, #000000));
 }
 
 .display-size-option {

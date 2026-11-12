@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { verifyRecoveryKey, normalizeRecoveryKey } from '../lib/recovery';
+import { readableTextColor } from '../lib/color';
 
 interface RecoveryKeyModalProps {
   recoveryKey: string;
@@ -9,6 +10,7 @@ interface RecoveryKeyModalProps {
 
 // Shown once after a Secret Code is set. The key is never shown again.
 export const RecoveryKeyModal: React.FC<RecoveryKeyModalProps> = ({ recoveryKey, accentColor, onDone }) => {
+  const accentText = readableTextColor(accentColor);
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -34,7 +36,7 @@ export const RecoveryKeyModal: React.FC<RecoveryKeyModalProps> = ({ recoveryKey,
           <button onClick={copy} className="dialog-small-button px-6 rounded-xl font-black text-xs bg-zinc-800 active:scale-95 transition-all">
             {copied ? 'Copied' : 'Copy key'}
           </button>
-          <button onClick={onDone} className="btn-text dialog-small-button px-6 rounded-xl font-black text-xs active:scale-95 transition-all" style={{ backgroundColor: accentColor, color: '#000000' }}>
+          <button onClick={onDone} className="btn-text dialog-small-button px-6 rounded-xl font-black text-xs active:scale-95 transition-all" style={{ backgroundColor: accentColor, color: accentText }}>
             
             I saved it
           </button>
@@ -53,6 +55,7 @@ interface RecoveryEntryModalProps {
 
 // Lets someone who forgot the Secret Code prove ownership with the recovery key.
 export const RecoveryEntryModal: React.FC<RecoveryEntryModalProps> = ({ storedHash, accentColor, onRecovered, onClose }) => {
+  const accentText = readableTextColor(accentColor);
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(false);
@@ -105,7 +108,7 @@ export const RecoveryEntryModal: React.FC<RecoveryEntryModalProps> = ({ storedHa
         )}
         <div className="flex flex-wrap justify-center gap-3 pt-2">
           {!noKeyOnFile && (
-            <button onClick={submit} disabled={!canSubmit} className="btn-text dialog-small-button px-6 rounded-xl font-black text-xs disabled:opacity-30 active:scale-95 transition-all" style={{ backgroundColor: accentColor, color: '#000000' }}>
+            <button onClick={submit} disabled={!canSubmit} className="btn-text dialog-small-button px-6 rounded-xl font-black text-xs disabled:opacity-30 active:scale-95 transition-all" style={{ backgroundColor: accentColor, color: accentText }}>
               
               Open Private
             </button>

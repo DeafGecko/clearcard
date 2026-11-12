@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { ArrowLeftIcon, XIcon } from './Icons';
+import { readableTextColor } from '../lib/color';
 
 interface PasscodeModalProps {
   onVerify: (code: string) => boolean | Promise<boolean>;
@@ -127,7 +128,7 @@ const PasscodeModal: React.FC<PasscodeModalProps> = ({ onVerify, onClose, title 
   return (
     <div
       className="passcode-modal theme-page fixed inset-0 z-100 flex flex-col items-center justify-center p-6 animate-in fade-in duration-300"
-      style={{ '--passcode-accent': accentColor } as React.CSSProperties}
+      style={{ '--passcode-accent': accentColor, '--passcode-accent-text': readableTextColor(accentColor) } as React.CSSProperties}
     >
       <div className="w-full max-w-xs flex flex-col items-center">
         <button

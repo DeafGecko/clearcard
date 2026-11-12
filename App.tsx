@@ -5,6 +5,7 @@ import { generateRecoveryKey, hashRecoveryKey, normalizeRecoveryKey } from './li
 import { createPasscodeRecord, verifyPasscode } from './lib/passcode';
 import { newVaultKey, wrapVaultKey, unwrapVaultKey, sealVault, openVault } from './lib/vault';
 import { SettingsIcon, LogOutIcon, MenuIcon, XIcon, LockIcon } from './components/Icons';
+import { readableTextColor } from './lib/color';
 import {
   TrashIcon,
   PlusIcon,
@@ -433,6 +434,8 @@ const App: React.FC = () => {
     c => c !== SystemCategories.EMERGENCY
   );
   const accentColor = prefs.accentColor;
+  // Text on accent-colored buttons: black on light accents, white on dark ones.
+  const accentText = readableTextColor(accentColor);
   const emergencyColor = '#E53935';
 
   return (
@@ -440,7 +443,7 @@ const App: React.FC = () => {
       className="app-shell select-none"
       data-theme={prefs.themeMode || 'light'}
       data-display-size={prefs.displaySize || 'normal'}
-      style={{ '--accent-color': accentColor } as React.CSSProperties}
+      style={{ '--accent-color': accentColor, '--accent-text': accentText } as React.CSSProperties}
     >
       <a href="#cards" className="skip-link">Skip to cards</a>
 
@@ -492,10 +495,10 @@ const App: React.FC = () => {
               }
               className={`header-utility logout-button h-15 w-15 rounded-lg flex items-center justify-center transition-all ${
                 hasSecretCode
-                  ? 'text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]'
+                  ? 'shadow-[0_0_20px_rgba(255,255,255,0.1)]'
                   : 'logout-button-idle'
               }`}
-              style={hasSecretCode ? { backgroundColor: accentColor } : {}}
+              style={hasSecretCode ? { backgroundColor: accentColor, color: accentText } : {}}
             >
               <LogOutIcon size={20} strokeWidth={2.5} />
             </button>
@@ -560,7 +563,7 @@ const App: React.FC = () => {
             setIsVaultUnlocked(false);
           }}
           className={`nav-primary-button nav-all-button ${activeCategory === 'All' ? 'is-active' : ''}`}
-          style={{ '--nav-button-color': accentColor } as React.CSSProperties}
+          style={{ '--nav-button-color': accentColor, '--nav-button-text': accentText } as React.CSSProperties}
           aria-pressed={activeCategory === 'All'}
         >
           All
@@ -651,7 +654,7 @@ const App: React.FC = () => {
                   <div className="swipe-actions absolute inset-0 hidden justify-end" style={{ backgroundColor: accentColor }}>
                     <button
                       onClick={e => startEditing(card, e)}
-                      className="w-14 shrink-0 text-black flex items-center justify-center" style={{ backgroundColor: accentColor }}
+                      className="w-14 shrink-0 flex items-center justify-center" style={{ backgroundColor: accentColor, color: accentText }}
                       aria-label="Edit"
                     >
                       <EditIcon size={28} />

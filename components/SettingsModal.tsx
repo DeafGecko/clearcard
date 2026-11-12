@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { DisplaySize, ThemeMode, UserPreferences } from '../types';
 import { LockIcon, CirclePlusIcon, LightThemeIcon, DarkThemeIcon, HighContrastThemeIcon, CheckIcon, XIcon, ArrowRightIcon, SettingsIcon } from './Icons';
 import { verifyPasscode } from '../lib/passcode';
+import { readableTextColor } from '../lib/color';
 import { clearPasscodeAttempts, getPasscodeLockSeconds, recordPasscodeFailure } from './PasscodeModal';
 
 interface SettingsModalProps {
@@ -23,6 +24,7 @@ const MODERN_COLORS = [
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose }) => {
   const [accent, setAccent] = useState(prefs.accentColor);
+  const accentText = readableTextColor(accent);
   const [displaySize, setDisplaySize] = useState<DisplaySize>(prefs.displaySize || 'normal');
   const [themeMode, setThemeMode] = useState<ThemeMode>(prefs.themeMode || 'light');
   // null means the Secret Code is unchanged.
@@ -140,7 +142,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                     }}
                     aria-pressed={isSelected}
                     className={`theme-mode-option ${isSelected ? 'is-selected' : ''}`}
-                    style={isSelected ? { backgroundColor: accent, color: '#000000' } : undefined}
+                    style={isSelected ? { backgroundColor: accent, color: accentText } : undefined}
                   >
                     <Icon size={24} />
                     <span>{option.label}</span>
@@ -163,7 +165,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                   className={`accent-swatch rounded-full transition-all duration-200 flex items-center justify-center ${accent === color.value ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-900" : "opacity-50 hover:opacity-100 scale-90"}`}
                   style={{ backgroundColor: color.value }}
                 >
-                  {accent === color.value && <div className="w-1.5 h-1.5 bg-black rounded-full" />}
+                  {accent === color.value && <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: readableTextColor(color.value) }} />}
                 </button>
               ))}
               <div className="relative">
@@ -182,7 +184,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                   className={`accent-swatch rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center transition-all ${isCustomColor ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-900 border-solid" : "opacity-50 hover:opacity-100"}`}
                   style={isCustomColor ? { backgroundColor: accent } : {}}
                 >
-                  <div className={isCustomColor ? "text-black scale-75" : "text-zinc-500 scale-75"}><CirclePlusIcon /></div>
+                  <div className={isCustomColor ? "scale-75" : "text-zinc-500 scale-75"} style={isCustomColor ? { color: accentText } : undefined}><CirclePlusIcon /></div>
                 </button>
               </div>
             </div>
@@ -201,7 +203,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                   }}
                   aria-pressed={displaySize === size}
                   className={`display-size-option flex-1 rounded-xl font-bold capitalize transition-all ${displaySize === size ? 'is-selected' : ''}`}
-                  style={displaySize === size ? { backgroundColor: accent, color: '#000000' } : undefined}
+                  style={displaySize === size ? { backgroundColor: accent, color: accentText } : undefined}
                 >
                   {size === 'enlarged' ? 'Biggest' : size}
                 </button>
@@ -219,7 +221,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                   <h3 className="font-bold">Code</h3>
                 </div>
                 {!isChangingPasscode && (
-                  <button onClick={startChangingPasscode} className="btn-text font-black uppercase tracking-widest px-4 py-2 rounded-xl outline-none" style={{ color: '#000000', backgroundColor: accent, border: 'none', borderWidth: 0 }}>Change code</button>
+                  <button onClick={startChangingPasscode} className="btn-text font-black uppercase tracking-widest px-4 py-2 rounded-xl outline-none" style={{ color: accentText, backgroundColor: accent, border: 'none', borderWidth: 0 }}>Change code</button>
                 )}
               </div>
               {isChangingPasscode ? (
@@ -237,9 +239,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                   <div className="flex gap-2">
                     <button onClick={cancelChangingPasscode} className="btn-text flex-1 h-9 bg-zinc-900 rounded-lg font-bold text-[10px] flex items-center justify-center gap-2"><XIcon size={14} />Cancel</button>
                     {passcodeVerified ? (
-                      <button onClick={handleUpdatePasscode} disabled={passcodeInput.length !== 6} className="btn-text flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30" style={{ backgroundColor: accent, color: "black" }}>Set</button>
+                      <button onClick={handleUpdatePasscode} disabled={passcodeInput.length !== 6} className="btn-text flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30" style={{ backgroundColor: accent, color: accentText }}>Set</button>
                     ) : (
-                      <button onClick={handleVerifyCurrentPasscode} disabled={passcodeInput.length !== 6} className="flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30" style={{ backgroundColor: accent, color: "black" }}><span className="flex items-center justify-center gap-2">Continue<ArrowRightIcon size={14} /></span></button>
+                      <button onClick={handleVerifyCurrentPasscode} disabled={passcodeInput.length !== 6} className="flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30" style={{ backgroundColor: accent, color: accentText }}><span className="flex items-center justify-center gap-2">Continue<ArrowRightIcon size={14} /></span></button>
                     )}
                   </div>
                 </div>
@@ -253,7 +255,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
         </div>
 
         <div className="mt-10">
-          <button onClick={handleSave} className="btn-text w-full h-14 rounded-2xl font-black text-sm flex items-center justify-center gap-3 active:scale-95 transition-all" style={{ backgroundColor: accent, color: "black", border: 'none', outline: 'none' }}>
+          <button onClick={handleSave} className="btn-text w-full h-14 rounded-2xl font-black text-sm flex items-center justify-center gap-3 active:scale-95 transition-all" style={{ backgroundColor: accent, color: accentText, border: 'none', outline: 'none' }}>
             
             <CheckIcon size={20} />
             SAVE CHANGES
@@ -270,7 +272,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
               <button
                 onClick={handleSave}
                 className="btn-text w-full h-12 rounded-2xl font-black text-sm active:scale-95 transition-all"
-                style={{ backgroundColor: accent, color: "black", border: 'none', borderWidth: 0, outline: 'none' }}
+                style={{ backgroundColor: accent, color: accentText, border: 'none', borderWidth: 0, outline: 'none' }}
               >
                 
                 SAVE CHANGES
