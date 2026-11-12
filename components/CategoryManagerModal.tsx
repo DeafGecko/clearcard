@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Category, SystemCategories } from '../types';
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from './Icons';
+import { readableTextColor } from '../lib/color';
 
 interface CategoryManagerModalProps {
   categories: Category[];
@@ -13,6 +14,7 @@ interface CategoryManagerModalProps {
 }
 
 const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ categories, onAdd, onDelete, onReorder, onClose, accentColor }) => {
+  const accentText = readableTextColor(accentColor);
   const [newCat, setNewCat] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -118,8 +120,8 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ categories,
             aria-label="Add new category"
             disabled={!newCat.trim()}
             onClick={handleSubmit as any}
-            className="add-group-button h-14 w-14 text-black rounded-full font-black disabled:opacity-30 active:scale-95 transition-transform flex items-center justify-center shadow-lg outline-none border-none"
-            style={{ backgroundColor: accentColor }}
+            className="add-group-button h-14 w-14 rounded-full font-black disabled:opacity-30 active:scale-95 transition-transform flex items-center justify-center shadow-lg outline-none border-none"
+            style={{ backgroundColor: accentColor, color: accentText }}
           >
             <PlusIcon aria-hidden="true" size={30} strokeWidth={4} />
           </button>
@@ -155,7 +157,7 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ categories,
                   className="category-arrow outline-none border-none bg-transparent p-0 leading-none active:scale-110 transition-all disabled:opacity-20"
                   aria-label="Move Up"
                 >
-                  <svg width="16" height="10" viewBox="0 0 26 16" fill="none" stroke="#000000" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="10" viewBox="0 0 26 16" fill="none" stroke={accentText} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="2,13 13,3 24,13" />
                   </svg>
                 </button>
@@ -165,7 +167,7 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ categories,
                   className="category-arrow outline-none border-none bg-transparent p-0 leading-none active:scale-110 transition-all disabled:opacity-20"
                   aria-label="Move Down"
                 >
-                  <svg width="16" height="10" viewBox="0 0 26 16" fill="none" stroke="#000000" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="10" viewBox="0 0 26 16" fill="none" stroke={accentText} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="2,3 13,13 24,3" />
                   </svg>
                 </button>

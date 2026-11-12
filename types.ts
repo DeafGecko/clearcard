@@ -34,6 +34,8 @@ export interface UserPreferences {
   vaultLocked: boolean;
   accentColor: string;
   displayTextColor: string;
+  // True after the Secret Code is turned off: the Vault cards are then open without a code.
+  vaultWithoutCode?: boolean;
   // Salted PBKDF2 hash of the Secret Code. The code itself is never stored.
   passcodeHash?: string;
   passcodeSalt?: string;

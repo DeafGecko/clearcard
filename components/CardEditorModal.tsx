@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Category, SystemCategories } from '../types';
 import { ArrowLeftIcon, LockIcon, EditIcon, PlusIcon } from './Icons';
 import PasscodeModal from './PasscodeModal';
+import { readableTextColor } from '../lib/color';
 
 interface CardEditorModalProps {
   categories: Category[];
@@ -17,6 +18,7 @@ interface CardEditorModalProps {
 }
 
 const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, onClose, initialData, accentColor, vaultUnlocked, vaultExists, onRequestVault, onSetPasscode }) => {
+  const accentText = readableTextColor(accentColor);
   const [title, setTitle] = useState(initialData?.title || '');
   const [content, setContent] = useState(initialData?.content || '');
   const contentRef = useRef<HTMLTextAreaElement>(null);
@@ -187,8 +189,8 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
         <button
           type="submit"
           disabled={!title || !content || showPasscodeGate}
-          className="btn-text w-full h-14 text-black rounded-2xl font-black text-base active:scale-95 transition-transform disabled:opacity-50 shadow-xl"
-          style={{ backgroundColor: accentColor, boxShadow: `0 10px 30px ${accentColor}33` }}
+          className="btn-text w-full h-14 rounded-2xl font-black text-base active:scale-95 transition-transform disabled:opacity-50 shadow-xl"
+          style={{ backgroundColor: accentColor, color: accentText, boxShadow: `0 10px 30px ${accentColor}33` }}
         >
           
           SAVE CARD
@@ -218,7 +220,7 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
                 onClick={handleSaveAndClose}
                 disabled={!title || !content}
                 className="btn-text w-full h-12 rounded-2xl font-black text-sm active:scale-95 transition-all disabled:opacity-40"
-                style={{ backgroundColor: accentColor, color: 'black', border: 'none', borderWidth: 0 }}
+                style={{ backgroundColor: accentColor, color: accentText, border: 'none', borderWidth: 0 }}
               >
                 
                 SAVE CARD
