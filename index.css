@@ -530,6 +530,20 @@ body,
 	color: var(--theme-foreground);
 }
 
+/* Dark: the Quick message button is white with a black icon. */
+.app-shell[data-theme="dark"] .fab-note {
+	background: #ffffff;
+	color: #000000;
+}
+
+/* Strong colors: the same black and yellow as the theme. Yellow #ffef00 on black is about 17:1,
+   and the yellow outline is about 17:1 against black, above WCAG's 3:1 for UI parts. */
+.app-shell[data-theme="highContrast"] .fab-note {
+	background: var(--theme-surface);
+	color: var(--theme-foreground);
+	border: 2px solid var(--theme-outline);
+}
+
 .app-shell .fab-add {
 	background: var(--accent-color);
 	color: var(--accent-text, #000000);
