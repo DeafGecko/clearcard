@@ -474,11 +474,46 @@ body,
 	border-color: var(--accent-color);
 }
 
+/* Bottom-right buttons: Write a note above New Card. Both are 56px circles. */
+.app-shell .fab-stack {
+	position: fixed;
+	right: 24px;
+	bottom: 24px;
+	z-index: 30;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+}
+
+.app-shell .fab-stack button {
+	width: 56px;
+	height: 56px;
+	min-height: 56px;
+	padding: 0;
+	border: 0;
+	border-radius: 999px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.app-shell .fab-note {
+	background: var(--theme-surface);
+	color: var(--theme-foreground);
+}
+
+.app-shell .fab-add {
+	background: var(--accent-color);
+	color: #000000;
+}
+
 /* Undo bar for a deleted card. Bottom right, above the Quick write button. */
 .app-shell .undo-toast {
 	position: fixed;
 	right: 16px;
-	bottom: 96px;
+	bottom: 176px;
 	z-index: 40;
 	display: flex;
 	align-items: center;

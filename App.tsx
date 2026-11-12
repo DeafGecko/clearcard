@@ -555,22 +555,6 @@ const App: React.FC = () => {
       <nav aria-label="Groups" className="app-nav shrink-0 z-30 pt-2 pb-2 landscape:pt-2 landscape:pb-1 overflow-x-auto whitespace-nowrap px-6 no-scrollbar flex items-center gap-2">
         <button
           onClick={() => {
-            triggerHaptic(10);
-            setEditingCard(null);
-            setShowEditorModal(true);
-          }}
-          className="nav-add-button active:scale-95 transition-all shadow-lg"
-          style={{
-            backgroundColor: accentColor,
-            boxShadow: `0 8px 24px ${accentColor}50`,
-          }}
-          aria-label="New Card"
-        >
-          <PlusIcon size={26} strokeWidth={3} />
-        </button>
-
-        <button
-          onClick={() => {
             triggerHaptic();
             setActiveCategory('All');
             setIsVaultUnlocked(false);
@@ -743,22 +727,28 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* BOTTOM BAR */}
-      <div className="app-toolbar fixed bottom-0 left-0 right-0 z-20 px-8 pb-4 pt-2 flex items-center justify-center gap-3">
+      {/* BOTTOM RIGHT: Write a note (top) and New Card (bottom) */}
+      <div className="fab-stack">
         <button
           onClick={() => {
             triggerHaptic(10);
             setShowQuickWrite(true);
           }}
-          className="quick-write-float h-13 px-8 rounded-full font-black text-sm uppercase tracking-wide border-2 flex items-center gap-2 active:scale-95 transition-all"
-          style={{
-            borderColor: accentColor,
-            backgroundColor: 'var(--theme-surface)',
-            color: 'var(--theme-foreground)',
-          }}
+          className="fab-note"
+          aria-label="Write a note"
         >
           <PenIcon size={24} />
-          Write a note
+        </button>
+        <button
+          onClick={() => {
+            triggerHaptic(10);
+            setEditingCard(null);
+            setShowEditorModal(true);
+          }}
+          className="fab-add"
+          aria-label="New Card"
+        >
+          <PlusIcon size={26} strokeWidth={3} />
         </button>
       </div>
 

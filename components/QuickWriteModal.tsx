@@ -24,6 +24,20 @@ const QuickWriteModal: React.FC<QuickWriteModalProps> = ({ accentColor, onShow, 
   return (
     <div className="fixed inset-0 z-120 flex items-center justify-center bg-black/80 backdrop-blur-sm sm:px-6" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-labelledby="quick-write-title" className="bg-zinc-900 sm:border sm:border-zinc-800 sm:rounded-3xl p-6 sm:p-8 w-full h-full sm:h-auto sm:max-w-sm flex flex-col gap-5 overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between gap-3">
+          <button type="button" onClick={onClose} className="quick-write-back h-12 px-4 rounded-2xl font-black text-sm bg-zinc-800 active:scale-95 transition-all">
+            Back
+          </button>
+          <button
+            type="button"
+            onClick={() => onSaveAsCard(message)}
+            disabled={!message}
+            className="quick-write-save h-12 px-4 rounded-2xl font-black text-sm disabled:opacity-40 active:scale-95 transition-all"
+            style={{ backgroundColor: accentColor, color: '#000000' }}
+          >
+            Save as card
+          </button>
+        </div>
         <h2 id="quick-write-title" className="font-black text-lg text-center">Write a note</h2>
         <p className="text-sm text-center">Not saved unless you save it as a card.</p>
         <label className="flex flex-col flex-1 sm:flex-none">
@@ -38,26 +52,15 @@ const QuickWriteModal: React.FC<QuickWriteModalProps> = ({ accentColor, onShow, 
             className="quick-write-text w-full flex-1 p-3 text-lg text-left resize-none min-h-40 sm:flex-none overflow-hidden"
           />
         </label>
-        <div className="flex flex-col gap-3 pt-2">
-          <button
-            onClick={() => onShow(message)}
-            disabled={!message}
-            className="w-full h-12 rounded-2xl font-black text-sm disabled:opacity-30 active:scale-95 transition-all"
-            style={{ backgroundColor: accentColor, color: '#000000' }}
-          >
-            Show now
-          </button>
-          <button
-            onClick={() => onSaveAsCard(message)}
-            disabled={!message}
-            className="w-full h-12 rounded-2xl font-black text-sm bg-zinc-800 disabled:opacity-30 active:scale-95 transition-all"
-          >
-            Save as card
-          </button>
-          <button onClick={onClose} className="w-full h-12 rounded-2xl font-black text-sm bg-zinc-800 active:scale-95 transition-all">
-            Cancel
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => onShow(message)}
+          disabled={!message}
+          className="w-full h-12 rounded-2xl font-black text-sm disabled:opacity-40 active:scale-95 transition-all"
+          style={{ backgroundColor: accentColor, color: '#000000' }}
+        >
+          Show now
+        </button>
       </div>
     </div>
   );
