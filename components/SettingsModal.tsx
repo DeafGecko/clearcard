@@ -29,6 +29,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, vaultOpen = false,
   const accentText = readableTextColor(accent);
   const [displaySize, setDisplaySize] = useState<DisplaySize>(prefs.displaySize || 'normal');
   const [themeMode, setThemeMode] = useState<ThemeMode>(prefs.themeMode || 'light');
+  // Strong colors uses yellow for the on switch, with a black knob for contrast.
+  const strongColors = themeMode === 'highContrast';
   // null means the Secret Code is unchanged.
   const [newPasscode, setNewPasscode] = useState<string | null>(null);
   // The current code, kept after it was checked, so the Vault can be re-keyed on save.
@@ -275,8 +277,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, vaultOpen = false,
                   <div className="text-zinc-500"><LockIcon /></div>
                   <h3 className="font-bold">Code</h3>
                 </div>
-                <button role="switch" aria-checked={codeOn} aria-label="Code" onClick={toggleCode} className="relative shrink-0 w-12 h-5 p-0 rounded-full transition-colors outline-none" style={{ backgroundColor: codeOn ? accent : '#3f3f46', height: 20, minHeight: 20 }}>
-                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${codeOn ? 'translate-x-7' : ''}`} />
+                <button role="switch" aria-checked={codeOn} aria-label="Code" onClick={toggleCode} className="relative shrink-0 w-12 h-5 p-0 rounded-full transition-colors outline-none" style={{ backgroundColor: strongColors ? (codeOn ? '#ffef00' : '#767676') : (codeOn ? accent : '#3f3f46'), height: 20, minHeight: 20 }}>
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full transition-transform ${codeOn ? 'translate-x-7' : ''}`} style={{ backgroundColor: strongColors && codeOn ? '#000000' : '#ffffff' }} />
                 </button>
               </div>
               {codeOn && !isChangingPasscode && (
