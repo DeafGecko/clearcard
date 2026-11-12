@@ -219,7 +219,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                   <h3 className="font-bold">Code</h3>
                 </div>
                 {!isChangingPasscode && (
-                  <button onClick={startChangingPasscode} className="font-black uppercase tracking-widest px-4 py-2 rounded-xl outline-none" style={{ color: '#000000', backgroundColor: accent, border: 'none', borderWidth: 0 }}>Change code</button>
+                  <button onClick={startChangingPasscode} className="btn-text font-black uppercase tracking-widest px-4 py-2 rounded-xl outline-none" style={{ color: '#000000', backgroundColor: accent, border: 'none', borderWidth: 0 }}>Change code</button>
                 )}
               </div>
               {isChangingPasscode ? (
@@ -235,9 +235,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                     <p role="alert" className="text-xs font-bold text-red-500">{passcodeError}</p>
                   )}
                   <div className="flex gap-2">
-                    <button onClick={cancelChangingPasscode} className="flex-1 h-9 bg-zinc-900 rounded-lg font-bold text-[10px] flex items-center justify-center gap-2"><XIcon size={14} />Cancel</button>
+                    <button onClick={cancelChangingPasscode} className="btn-text flex-1 h-9 bg-zinc-900 rounded-lg font-bold text-[10px] flex items-center justify-center gap-2"><XIcon size={14} />Cancel</button>
                     {passcodeVerified ? (
-                      <button onClick={handleUpdatePasscode} disabled={passcodeInput.length !== 6} className="flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30" style={{ backgroundColor: accent, color: "black" }}>Set</button>
+                      <button onClick={handleUpdatePasscode} disabled={passcodeInput.length !== 6} className="btn-text flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30" style={{ backgroundColor: accent, color: "black" }}>Set</button>
                     ) : (
                       <button onClick={handleVerifyCurrentPasscode} disabled={passcodeInput.length !== 6} className="flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30" style={{ backgroundColor: accent, color: "black" }}><span className="flex items-center justify-center gap-2">Continue<ArrowRightIcon size={14} /></span></button>
                     )}
@@ -253,7 +253,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
         </div>
 
         <div className="mt-10">
-          <button onClick={handleSave} className="w-full h-14 rounded-2xl font-black text-sm flex items-center justify-center gap-3 active:scale-95 transition-all" style={{ backgroundColor: accent, color: "black", border: 'none', outline: 'none' }}>
+          <button onClick={handleSave} className="btn-text w-full h-14 rounded-2xl font-black text-sm flex items-center justify-center gap-3 active:scale-95 transition-all" style={{ backgroundColor: accent, color: "black", border: 'none', outline: 'none' }}>
+            
             <CheckIcon size={20} />
             SAVE CHANGES
           </button>
@@ -268,9 +269,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
             <div className="flex flex-col gap-3 pt-4">
               <button
                 onClick={handleSave}
-                className="w-full h-12 rounded-2xl font-black text-sm active:scale-95 transition-all"
+                className="btn-text w-full h-12 rounded-2xl font-black text-sm active:scale-95 transition-all"
                 style={{ backgroundColor: accent, color: "black", border: 'none', borderWidth: 0, outline: 'none' }}
               >
+                
                 SAVE CHANGES
               </button>
               <button

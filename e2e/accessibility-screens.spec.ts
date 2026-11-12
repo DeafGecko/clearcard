@@ -18,7 +18,7 @@ for (const theme of themes) {
     };
 
     test('write a note dialog', async ({ page }) => {
-      await page.getByRole('button', { name: 'Write a note' }).click();
+      await page.getByRole('button', { name: 'Quick message' }).click();
       await check(page, 'write a note');
     });
 

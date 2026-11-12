@@ -617,7 +617,7 @@ const App: React.FC = () => {
                   triggerHaptic(40);
                   setShowRecoveryEntry(true);
                 }}
-                className="w-full max-w-sm h-16 landscape:h-12 mb-4 bg-zinc-900 text-white rounded-lg font-black text-lg landscape:text-sm active:scale-95 transition-transform"
+                className="btn-text w-full max-w-sm h-16 landscape:h-12 mb-4 bg-zinc-900 text-white rounded-lg font-black text-lg landscape:text-sm active:scale-95 transition-transform"
               >
                 USE BACKUP KEY
               </button>
@@ -627,7 +627,7 @@ const App: React.FC = () => {
                 triggerHaptic(40);
                 setShowPasscodeModal(true);
               }}
-              className="w-full max-w-sm h-16 landscape:h-12 bg-white text-black rounded-lg font-black text-lg landscape:text-sm active:scale-95 transition-transform"
+              className="btn-text w-full max-w-sm h-16 landscape:h-12 bg-white text-black rounded-lg font-black text-lg landscape:text-sm active:scale-95 transition-transform"
             >
               UNLOCK PRIVATE
             </button>
@@ -735,7 +735,7 @@ const App: React.FC = () => {
             setShowQuickWrite(true);
           }}
           className="fab-note"
-          aria-label="Write a note"
+          aria-label="Quick message"
         >
           <PenIcon size={24} />
         </button>
@@ -755,7 +755,7 @@ const App: React.FC = () => {
       {undoItem && (
         <div role="status" aria-live="polite" className="undo-toast">
           <span>Card deleted</span>
-          <button type="button" onClick={undoDelete}>Undo</button>
+          <button className="btn-text" type="button" onClick={undoDelete}>Undo</button>
         </div>
       )}
 

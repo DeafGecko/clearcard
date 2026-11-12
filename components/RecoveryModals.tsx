@@ -34,7 +34,8 @@ export const RecoveryKeyModal: React.FC<RecoveryKeyModalProps> = ({ recoveryKey,
           <button onClick={copy} className="dialog-small-button px-6 rounded-xl font-black text-xs bg-zinc-800 active:scale-95 transition-all">
             {copied ? 'Copied' : 'Copy key'}
           </button>
-          <button onClick={onDone} className="dialog-small-button px-6 rounded-xl font-black text-xs active:scale-95 transition-all" style={{ backgroundColor: accentColor, color: '#000000' }}>
+          <button onClick={onDone} className="btn-text dialog-small-button px-6 rounded-xl font-black text-xs active:scale-95 transition-all" style={{ backgroundColor: accentColor, color: '#000000' }}>
+            
             I saved it
           </button>
         </div>
@@ -104,11 +105,13 @@ export const RecoveryEntryModal: React.FC<RecoveryEntryModalProps> = ({ storedHa
         )}
         <div className="flex flex-wrap justify-center gap-3 pt-2">
           {!noKeyOnFile && (
-            <button onClick={submit} disabled={!canSubmit} className="dialog-small-button px-6 rounded-xl font-black text-xs disabled:opacity-30 active:scale-95 transition-all" style={{ backgroundColor: accentColor, color: '#000000' }}>
+            <button onClick={submit} disabled={!canSubmit} className="btn-text dialog-small-button px-6 rounded-xl font-black text-xs disabled:opacity-30 active:scale-95 transition-all" style={{ backgroundColor: accentColor, color: '#000000' }}>
+              
               Open Private
             </button>
           )}
-          <button onClick={onClose} className="dialog-small-button px-6 rounded-xl font-black text-xs bg-zinc-800 active:scale-95 transition-all">
+          <button onClick={onClose} className="btn-text dialog-small-button px-6 rounded-xl font-black text-xs bg-zinc-800 active:scale-95 transition-all">
+            
             Back
           </button>
         </div>

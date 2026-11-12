@@ -25,21 +25,24 @@ const QuickWriteModal: React.FC<QuickWriteModalProps> = ({ accentColor, onShow, 
     <div className="fixed inset-0 z-120 flex items-center justify-center bg-black/80 backdrop-blur-sm sm:px-6" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-labelledby="quick-write-title" className="bg-zinc-900 sm:border sm:border-zinc-800 sm:rounded-3xl p-6 sm:p-8 w-full h-full sm:h-auto sm:max-w-sm flex flex-col gap-5 overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between gap-3">
-          <button type="button" onClick={onClose} className="quick-write-back h-12 px-4 rounded-2xl font-black text-sm bg-zinc-800 active:scale-95 transition-all">
+          <button type="button" onClick={onClose} className="btn-text quick-write-back h-12 px-4 rounded-2xl font-black text-sm bg-zinc-800 active:scale-95 transition-all">
+            
             Back
           </button>
           <button
             type="button"
             onClick={() => onSaveAsCard(message)}
             disabled={!message}
-            className="quick-write-save h-12 px-4 rounded-2xl font-black text-sm disabled:opacity-40 active:scale-95 transition-all"
+            className="btn-text quick-write-save h-12 px-4 rounded-2xl font-black text-sm disabled:opacity-40 active:scale-95 transition-all"
             style={{ backgroundColor: accentColor, color: '#000000' }}
           >
             Save as card
           </button>
         </div>
-        <h2 id="quick-write-title" className="font-black text-lg text-center">Write a note</h2>
-        <p className="text-sm text-center">Not saved unless you save it as a card.</p>
+        <div className="flex flex-col items-center gap-1">
+          <h2 id="quick-write-title" className="font-black text-lg text-center">Quick message</h2>
+          <p className="quick-write-hint text-sm text-center">Tap Save as card to keep it.</p>
+        </div>
         <label className="flex flex-col flex-1 sm:flex-none">
           <span className="sr-only">Message</span>
           <textarea
@@ -56,7 +59,7 @@ const QuickWriteModal: React.FC<QuickWriteModalProps> = ({ accentColor, onShow, 
           type="button"
           onClick={() => onShow(message)}
           disabled={!message}
-          className="w-full h-12 rounded-2xl font-black text-sm disabled:opacity-40 active:scale-95 transition-all"
+          className="btn-text w-full h-12 rounded-2xl font-black text-sm disabled:opacity-40 active:scale-95 transition-all"
           style={{ backgroundColor: accentColor, color: '#000000' }}
         >
           Show now

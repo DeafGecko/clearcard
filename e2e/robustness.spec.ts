@@ -70,7 +70,7 @@ test('a normal session through the main screens has no page errors', async ({ pa
   await resetStorage(page, { themeMode: 'light', displaySize: 'normal', accentColor: '#FACC15' });
   const errors = watchErrors(page);
   await page.goto('/');
-  await page.getByRole('button', { name: 'Write a note' }).click();
+  await page.getByRole('button', { name: 'Quick message' }).click();
   await page.getByRole('textbox').fill('Test note');
   await page.getByRole('button', { name: 'Show now' }).click();
   await page.keyboard.press('Escape');

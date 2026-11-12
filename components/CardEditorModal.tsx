@@ -105,9 +105,9 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
   return (
     <div className="theme-page fixed inset-0 z-70 flex flex-col p-6 animate-in slide-in-from-bottom duration-300 overflow-y-auto">
       <div className="mb-8">
-        <button onClick={handleClose} aria-label="Back" className="editor-back-button flex items-center gap-2 px-4 py-3 bg-zinc-900 rounded-2xl font-black active:scale-95 transition-transform outline-none border-none">
-          <ArrowLeftIcon aria-hidden="true" />
-          <span>Back</span>
+        <button type="button" onClick={handleClose} aria-label="Back" className="btn-text quick-write-back h-12 px-4 rounded-2xl font-black text-sm bg-zinc-800 active:scale-95 transition-all">
+          
+          Back
         </button>
         <h2 className="max-w-2xl mx-auto w-full mt-2 flex items-center gap-3 text-2xl font-black">
           {initialData ? <EditIcon size={24} aria-hidden="true" /> : <PlusIcon size={24} aria-hidden="true" />}
@@ -187,9 +187,10 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
         <button
           type="submit"
           disabled={!title || !content || showPasscodeGate}
-          className="w-full h-14 text-black rounded-2xl font-black text-base active:scale-95 transition-transform disabled:opacity-50 shadow-xl"
+          className="btn-text w-full h-14 text-black rounded-2xl font-black text-base active:scale-95 transition-transform disabled:opacity-50 shadow-xl"
           style={{ backgroundColor: accentColor, boxShadow: `0 10px 30px ${accentColor}33` }}
         >
+          
           SAVE CARD
         </button>
       </form>
@@ -216,9 +217,10 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
               <button
                 onClick={handleSaveAndClose}
                 disabled={!title || !content}
-                className="w-full h-12 rounded-2xl font-black text-sm active:scale-95 transition-all disabled:opacity-40"
+                className="btn-text w-full h-12 rounded-2xl font-black text-sm active:scale-95 transition-all disabled:opacity-40"
                 style={{ backgroundColor: accentColor, color: 'black', border: 'none', borderWidth: 0 }}
               >
+                
                 SAVE CARD
               </button>
               <button

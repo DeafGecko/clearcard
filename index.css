@@ -451,6 +451,31 @@ body,
 	min-height: 44px;
 }
 
+/* Write a note placeholder: a lighter gray. */
+.app-shell .quick-write-text::placeholder {
+	color: #a3a3a3;
+	opacity: 1;
+}
+
+/* Write a note helper line: dark gray in light mode, light gray in dark modes. */
+.app-shell .quick-write-hint {
+	color: #4a4a4a;
+}
+
+.app-shell[data-theme="dark"] .quick-write-hint {
+	color: #b0b0b0;
+}
+
+.app-shell[data-theme="highContrast"] .quick-write-hint {
+	color: #e0e0e0;
+}
+
+/* Text buttons: more space on the left and right than on the top and bottom. */
+.app-shell .btn-text {
+	padding-inline: 32px;
+	padding-block: 12px;
+}
+
 /* Quick write: left-aligned text in a light gray box. The box uses the theme's gray border. */
 .app-shell .quick-write-text {
 	border: 2px solid var(--theme-outline);
