@@ -7,8 +7,10 @@ import { clearPasscodeAttempts, getPasscodeLockSeconds, recordPasscodeFailure } 
 
 interface SettingsModalProps {
   prefs: UserPreferences;
+  // True when Private is already unlocked in this session. Turning the code off then needs no code.
+  vaultOpen?: boolean;
   // change is passed only when the owner set a new Secret Code in this session.
-  onSave: (newPrefs: UserPreferences, change?: { newCode: string; currentCode?: string }) => void;
+  onSave: (newPrefs: UserPreferences, change?: { newCode?: string; currentCode?: string; turnOff?: boolean }) => void;
   onClose: () => void;
 }
 
@@ -22,7 +24,7 @@ const MODERN_COLORS = [
 
 
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, vaultOpen = false, onSave, onClose }) => {
   const [accent, setAccent] = useState(prefs.accentColor);
   const accentText = readableTextColor(accent);
   const [displaySize, setDisplaySize] = useState<DisplaySize>(prefs.displaySize || 'normal');
@@ -32,6 +34,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
   // The current code, kept after it was checked, so the Vault can be re-keyed on save.
   const [verifiedCode, setVerifiedCode] = useState<string | null>(null);
   const [isChangingPasscode, setIsChangingPasscode] = useState(false);
+  // The Code switch. It turns off only after the current code is checked; the code is removed on Save.
+  const [codeOn, setCodeOn] = useState(!!prefs.passcodeHash);
+  const [turningOff, setTurningOff] = useState(false);
+  const [turnOffPending, setTurnOffPending] = useState(false);
   const [passcodeInput, setPasscodeInput] = useState("");
   // Changing an existing code first needs the current one. A new code needs no check.
   const [passcodeVerified, setPasscodeVerified] = useState(false);
@@ -49,12 +55,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
     accent !== prefs.accentColor ||
     displaySize !== (prefs.displaySize || 'normal') ||
     themeMode !== (prefs.themeMode || 'light') ||
-    newPasscode !== null;
+    newPasscode !== null ||
+    turnOffPending;
 
   const handleSave = () => {
+    // A turn-off that is not confirmed yet blocks Save, so the switch cannot quietly go back to on.
+    if (turningOff) {
+      setPasscodeError("Enter your current code to turn the code off, or tap the switch again.");
+      return;
+    }
     onSave(
       { ...prefs, accentColor: accent, displaySize, themeMode },
-      newPasscode !== null ? { newCode: newPasscode, currentCode: verifiedCode ?? undefined } : undefined
+      newPasscode !== null
+        ? { newCode: newPasscode, currentCode: verifiedCode ?? undefined }
+        : turnOffPending
+          ? { turnOff: true, currentCode: verifiedCode ?? undefined }
+          : undefined
     );
     triggerClose();
   };
@@ -75,7 +91,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
   };
 
   const cancelChangingPasscode = () => {
+    // Cancelling a turn-off puts the switch back on.
+    if (turningOff) setCodeOn(true);
     setIsChangingPasscode(false);
+    setTurningOff(false);
     setPasscodeInput("");
     setPasscodeError("");
     setPasscodeVerified(false);
@@ -91,13 +110,49 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
     if (await verifyPasscode(passcodeInput, prefs)) {
       clearPasscodeAttempts();
       setVerifiedCode(passcodeInput);
-      setPasscodeVerified(true);
       setPasscodeError("");
+      if (turningOff) {
+        // Checked. The switch turns off now; the code is removed when the owner saves.
+        setTurningOff(false);
+        setTurnOffPending(true);
+        setCodeOn(false);
+        setIsChangingPasscode(false);
+        setPasscodeVerified(false);
+      } else {
+        setPasscodeVerified(true);
+      }
     } else {
       recordPasscodeFailure();
       setPasscodeError("Current code is incorrect.");
     }
     setPasscodeInput("");
+  };
+
+  const toggleCode = () => {
+    if (!codeOn) {
+      if (turningOff) cancelChangingPasscode();
+      setCodeOn(true);
+      setTurnOffPending(false);
+      return;
+    }
+    if (prefs.passcodeHash && vaultOpen) {
+      // Private is already open in this session, so the code is not asked for again.
+      setCodeOn(false);
+      setVerifiedCode(null);
+      setTurnOffPending(true);
+      return;
+    }
+    if (prefs.passcodeHash) {
+      // The switch moves to off, and the current code is asked for to confirm it.
+      setCodeOn(false);
+      startChangingPasscode();
+      setTurningOff(true);
+      return;
+    }
+    // No code saved yet, so nothing to check. Drop any unfinished new code.
+    setCodeOn(false);
+    setNewPasscode(null);
+    cancelChangingPasscode();
   };
 
   const handleUpdatePasscode = () => {
@@ -220,23 +275,28 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, onSave, onClose })
                   <div className="text-zinc-500"><LockIcon /></div>
                   <h3 className="font-bold">Code</h3>
                 </div>
-                {!isChangingPasscode && (
-                  <button onClick={startChangingPasscode} className="btn-text font-black uppercase tracking-widest px-4 py-2 rounded-xl outline-none" style={{ color: accentText, backgroundColor: accent, border: 'none', borderWidth: 0 }}>Change code</button>
-                )}
+                <button role="switch" aria-checked={codeOn} aria-label="Code" onClick={toggleCode} className="relative shrink-0 w-12 h-5 p-0 rounded-full transition-colors outline-none" style={{ backgroundColor: codeOn ? accent : '#3f3f46', height: 20, minHeight: 20 }}>
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${codeOn ? 'translate-x-7' : ''}`} />
+                </button>
               </div>
+              {codeOn && !isChangingPasscode && (
+                <div className="mt-3">
+                  <button onClick={startChangingPasscode} className="btn-text font-black uppercase tracking-widest px-4 py-2 rounded-xl outline-none" style={{ color: accentText, backgroundColor: accent, border: 'none', borderWidth: 0 }}>{prefs.passcodeHash ? 'Change code' : 'Create code'}</button>
+                </div>
+              )}
+              {!codeOn && !isChangingPasscode && (
+                <p className="mt-3 text-xs font-bold text-zinc-500">{turnOffPending ? 'Code will turn off when you press Save Changes.' : 'Turn on to add a code.'}</p>
+              )}
               {isChangingPasscode ? (
-                <div className="space-y-3">
-                  {!passcodeVerified && (
-                    <p className="text-xs font-bold text-zinc-500">Enter your current code first.</p>
-                  )}
+                <div className="mt-5 space-y-1">
                   <label className="block">
-                    <span className="sr-only">{passcodeVerified ? "New code" : "Current code"}</span>
-                    <input type="password" inputMode="numeric" maxLength={6} autoFocus value={passcodeInput} onChange={(e) => setPasscodeInput(e.target.value.replace(/\D/g, ""))} placeholder={passcodeVerified ? "New code, 6 digits" : "Current code"} className="settings-code-input w-full bg-black border border-zinc-800 rounded-xl h-10 px-4 text-center font-black text-lg tracking-[0.5em] focus:outline-none" />
+                    <span className="sr-only">{passcodeVerified ? "New code" : "Enter current code"}</span>
+                    <input type="password" inputMode="numeric" maxLength={6} autoFocus value={passcodeInput} onChange={(e) => setPasscodeInput(e.target.value.replace(/\D/g, ""))} placeholder={passcodeVerified ? "New code, 6 digits" : "Enter current code"} className="settings-code-input w-full bg-black border border-zinc-800 rounded-xl h-10 px-4 text-center font-black text-lg tracking-[0.5em] focus:outline-none" />
                   </label>
                   {passcodeError && (
                     <p role="alert" className="text-xs font-bold text-red-500">{passcodeError}</p>
                   )}
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mt-3">
                     <button onClick={cancelChangingPasscode} className="btn-text flex-1 h-9 bg-zinc-900 rounded-lg font-bold text-[10px] flex items-center justify-center gap-2"><XIcon size={14} />Cancel</button>
                     {passcodeVerified ? (
                       <button onClick={handleUpdatePasscode} disabled={passcodeInput.length !== 6} className="btn-text flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-30" style={{ backgroundColor: accent, color: accentText }}>Set</button>

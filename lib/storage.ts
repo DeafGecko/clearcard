@@ -151,6 +151,9 @@ export const storage = {
   saveVault: (blob: string) => {
     localStorage.setItem(VAULT_KEY, blob);
   },
+  clearVault: () => {
+    localStorage.removeItem(VAULT_KEY);
+  },
   saveCategories: (cats: Category[]) => {
     localStorage.setItem(CATS_KEY, JSON.stringify(cats));
   },

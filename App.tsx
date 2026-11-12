@@ -61,6 +61,10 @@ const App: React.FC = () => {
   const persistCards = async (next: VisioCard[]) => {
     const key = vaultKeyRef.current;
     if (!key) {
+      if (prefs.vaultWithoutCode) {
+        storage.saveCards(next);
+        return;
+      }
       // Locked: keep old plain-text Vault cards until they are moved into the encrypted Vault.
       storage.saveCards([...next.filter(c => !isVaultCard(c)), ...legacyVaultRef.current]);
       return;
@@ -86,9 +90,15 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const stored = storage.getCards();
-    // Plain-text Vault cards from an older build. They move into the encrypted Vault on first unlock.
-    legacyVaultRef.current = stored.filter(isVaultCard);
-    setCards(stored.filter(c => !isVaultCard(c)));
+    if (storage.getPrefs().vaultWithoutCode) {
+      // The code was turned off, so the Vault cards are plain and open.
+      setCards(stored);
+      setIsVaultUnlocked(true);
+    } else {
+      // Plain-text Vault cards from an older build. They move into the encrypted Vault on first unlock.
+      legacyVaultRef.current = stored.filter(isVaultCard);
+      setCards(stored.filter(c => !isVaultCard(c)));
+    }
     setCategories(storage.getCategories());
   }, []);
 
@@ -129,9 +139,11 @@ const App: React.FC = () => {
 
   const handleSettingsSave = async (
     newPrefs: UserPreferences,
-    change?: { newCode: string; currentCode?: string }
+    change?: { newCode?: string; currentCode?: string; turnOff?: boolean }
   ) => {
-    if (change) {
+    if (change?.turnOff) {
+      if (!(await handleTurnOffCode(newPrefs, change.currentCode))) handleUpdatePrefs(newPrefs);
+    } else if (change?.newCode !== undefined) {
       await handleNewCode(newPrefs, change.newCode, change.currentCode);
     } else {
       handleUpdatePrefs(newPrefs);
@@ -153,13 +165,16 @@ const App: React.FC = () => {
         // A locked Vault cannot be re-keyed without its code or recovery key.
         if (vaultExists) return false;
         key = await newVaultKey();
-        vaultCards = legacyVaultRef.current.length > 0 ? legacyVaultRef.current : DEFAULT_VAULT_CARDS;
+        vaultCards = base.vaultWithoutCode
+          ? cards.filter(isVaultCard)
+          : legacyVaultRef.current.length > 0 ? legacyVaultRef.current : DEFAULT_VAULT_CARDS;
       }
     }
 
     const recoveryKey = generateRecoveryKey();
     const next: UserPreferences = {
       ...base,
+      vaultWithoutCode: false,
       ...(await createPasscodeRecord(newCode)),
       vaultWrapCode: await wrapVaultKey(key, newCode),
       vaultWrapRecovery: await wrapVaultKey(key, normalizeRecoveryKey(recoveryKey)),
@@ -175,6 +190,44 @@ const App: React.FC = () => {
     storage.savePrefs(next);
     setPendingRecoveryKey(recoveryKey);
     await persistCards(nextCards);
+    triggerHaptic(50);
+    return true;
+  };
+
+  // Turns the Secret Code off. The Vault cards are decrypted and kept as plain cards,
+  // and they stay open without a code (vaultWithoutCode).
+  // With no code given, Private must already be open in this session; its cards are in memory.
+  const handleTurnOffCode = async (base: UserPreferences, code?: string): Promise<boolean> => {
+    let vaultCards: VisioCard[];
+    if (code !== undefined) {
+      if (!(await verifyPasscode(code, prefs))) return false;
+      const opened = await openVaultWith(code);
+      if (!opened) return false;
+      vaultCards = opened.cards;
+    } else {
+      if (!vaultKeyRef.current) return false;
+      vaultCards = cards.filter(isVaultCard);
+    }
+
+    vaultKeyRef.current = null;
+    legacyVaultRef.current = [];
+    const nextCards = [...cards.filter(c => !isVaultCard(c)), ...vaultCards];
+    const next: UserPreferences = {
+      ...base,
+      passcodeHash: undefined,
+      passcodeSalt: undefined,
+      vaultWrapCode: undefined,
+      vaultWrapRecovery: undefined,
+      recoveryKeyHash: undefined,
+      vaultWithoutCode: true,
+    };
+    setCards(nextCards);
+    setIsVaultUnlocked(true);
+    setPrefs(next);
+    storage.savePrefs(next);
+    storage.saveCards(nextCards);
+    storage.clearVault();
+    clearPasscodeAttempts();
     triggerHaptic(50);
     return true;
   };
@@ -206,7 +259,7 @@ const App: React.FC = () => {
     id?: string
   ) => {
     // Private cards can only be written while the Vault is unlocked.
-    if (data.category === SystemCategories.VAULT && !vaultKeyRef.current) return;
+    if (data.category === SystemCategories.VAULT && !vaultKeyRef.current && !prefs.vaultWithoutCode) return;
     {
       const prevCards = cards;
       let nextCards: VisioCard[];
@@ -272,7 +325,7 @@ const App: React.FC = () => {
     const { card, index } = undoItem;
     dismissUndo();
     // A Vault card can only come back while the Vault is open.
-    if (isVaultCard(card) && !vaultKeyRef.current) return;
+    if (isVaultCard(card) && !vaultKeyRef.current && !prefs.vaultWithoutCode) return;
     const next = [...cards];
     next.splice(Math.min(index, next.length), 0, card);
     setCards(next);
@@ -408,6 +461,11 @@ const App: React.FC = () => {
   // One tap locks the Vault and opens the Secret Code screen.
   const handleLockToggle = () => {
     triggerHaptic(20);
+    if (prefs.vaultWithoutCode) {
+      // With no code, there is nothing to lock. Settings is where a code is turned back on.
+      setShowSettingsModal(true);
+      return;
+    }
     if (isVaultUnlocked) {
       // Remove the decrypted Vault cards and the key from memory.
       vaultKeyRef.current = null;
@@ -856,6 +914,7 @@ const App: React.FC = () => {
       {showSettingsModal && (
         <SettingsModal
           prefs={prefs}
+          vaultOpen={isVaultUnlocked}
           onSave={handleSettingsSave}
           onClose={() => setShowSettingsModal(false)}
         />
