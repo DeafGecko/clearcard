@@ -73,6 +73,9 @@ const FullscreenViewer: React.FC<FullscreenViewerProps> = ({ card, onClose, onEd
 
   return (
     <div 
+      role="dialog"
+      aria-modal="true"
+      aria-label={card.title}
       className="fixed inset-0 z-100 flex flex-col overflow-hidden animate-in fade-in duration-300"
       style={{ backgroundColor: '#27272a' }}
       onClick={handleBackgroundClick}

@@ -726,6 +726,13 @@ const App: React.FC = () => {
                     </button>
                   </div>
                   <article
+                    tabIndex={0}
+                    onKeyDown={event => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        event.currentTarget.click();
+                      }
+                    }}
                     onTouchStart={event => handleSwipeStart(event, card.id)}
                     onTouchEnd={event => handleSwipeEnd(event, card.id)}
                     onClick={() => {
@@ -740,7 +747,7 @@ const App: React.FC = () => {
                       triggerHaptic(15);
                       setSelectedCard(card);
                     }}
-                    className="swipe-card-content app-card group relative px-6 py-3 rounded-lg cursor-pointer transition-transform flex items-center gap-4 overflow-hidden"
+                    className="swipe-card-content app-card group relative px-6 py-3 rounded-lg cursor-pointer transition-transform flex items-center gap-4 overflow-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--accent-color)"
                     data-open={openSwipeCardId === card.id}
                     style={
                       { '--accent-color': accentColor } as React.CSSProperties

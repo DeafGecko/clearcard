@@ -105,13 +105,13 @@ const CardEditorModal: React.FC<CardEditorModalProps> = ({ categories, onSave, o
   };
 
   return (
-    <div className="theme-page fixed inset-0 z-70 flex flex-col p-6 animate-in slide-in-from-bottom duration-300 overflow-y-auto">
+    <div role="dialog" aria-modal="true" aria-labelledby="card-editor-title" className="theme-page fixed inset-0 z-70 flex flex-col p-6 animate-in slide-in-from-bottom duration-300 overflow-y-auto">
       <div className="mb-8">
         <button type="button" onClick={handleClose} aria-label="Back" className="btn-text quick-write-back h-12 px-4 rounded-2xl font-black text-sm bg-zinc-800 active:scale-95 transition-all">
           
           Back
         </button>
-        <h2 className="max-w-2xl mx-auto w-full mt-2 flex items-center gap-3 text-2xl font-black">
+        <h2 id="card-editor-title" className="max-w-2xl mx-auto w-full mt-2 flex items-center gap-3 text-2xl font-black">
           {initialData ? <EditIcon size={24} aria-hidden="true" /> : <PlusIcon size={24} aria-hidden="true" />}
           {initialData ? 'Edit Card' : 'New Card'}
         </h2>
