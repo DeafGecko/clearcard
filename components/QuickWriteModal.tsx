@@ -25,7 +25,7 @@ const QuickWriteModal: React.FC<QuickWriteModalProps> = ({ accentColor, onShow, 
 
   return (
     <div className="fixed inset-0 z-120 flex items-center justify-center bg-black/80 backdrop-blur-sm sm:px-6" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-labelledby="quick-write-title" className="bg-zinc-900 sm:border sm:border-zinc-800 sm:rounded-3xl p-6 sm:p-8 w-full h-full sm:h-auto sm:max-w-sm flex flex-col gap-5 overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" aria-labelledby="quick-write-title" className="bg-zinc-900 sm:border sm:border-zinc-800 sm:rounded-3xl p-6 sm:p-8 w-full h-full sm:h-auto sm:max-w-md flex flex-col gap-5 overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between gap-3">
           <button type="button" onClick={onClose} className="btn-text quick-write-back h-12 px-4 rounded-2xl font-black text-sm bg-zinc-800 active:scale-95 transition-all">
             
@@ -54,7 +54,7 @@ const QuickWriteModal: React.FC<QuickWriteModalProps> = ({ accentColor, onShow, 
             value={text}
             onChange={e => setText(e.target.value)}
             placeholder="Type your message"
-            className="quick-write-text w-full flex-1 p-3 text-lg text-left resize-none min-h-40 sm:flex-none overflow-hidden"
+            className="quick-write-text w-full flex-1 p-3 text-lg text-left resize-none min-h-40 sm:min-h-72 sm:flex-none overflow-hidden"
           />
         </label>
         <button
