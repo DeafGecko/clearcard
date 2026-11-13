@@ -29,6 +29,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, vaultOpen = false,
   const accentText = readableTextColor(accent);
   const [displaySize, setDisplaySize] = useState<DisplaySize>(prefs.displaySize || 'normal');
   const [themeMode, setThemeMode] = useState<ThemeMode>(prefs.themeMode || 'light');
+  // Strong colors uses yellow for the on switch, with a black knob for contrast.
+  const strongColors = themeMode === 'highContrast';
   // null means the Secret Code is unchanged.
   const [newPasscode, setNewPasscode] = useState<string | null>(null);
   // The current code, kept after it was checked, so the Vault can be re-keyed on save.
@@ -165,10 +167,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, vaultOpen = false,
   const isCustomColor = !MODERN_COLORS.some(c => c.value === accent);
   return (
     <div className={`settings-overlay fixed inset-0 bg-black/80 backdrop-blur-sm z-110 flex justify-end overflow-hidden${isClosing ? ' is-closing' : ''}`} onClick={handleClose}>
-      <div className={`settings-panel bg-zinc-900 w-full max-w-105 h-full border-l border-zinc-800 shadow-2xl flex flex-col p-6 overflow-y-auto no-scrollbar${isClosing ? ' is-closing' : ''}`} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+      <div className={`settings-panel bg-zinc-900 w-full max-w-105 h-full border-l border-zinc-800 shadow-2xl flex flex-col p-6 overflow-y-auto no-scrollbar${isClosing ? ' is-closing' : ''}`} role="dialog" aria-modal="true" aria-labelledby="settings-title" onClick={e => e.stopPropagation()}>
 
         <div className="flex items-center justify-between mb-8">
-          <h2 className="flex items-center gap-3 text-xl font-black"><SettingsIcon size={24} strokeWidth={2.5} />Settings</h2>
+          <h2 id="settings-title" className="flex items-center gap-3 text-xl font-black"><SettingsIcon size={24} strokeWidth={2.5} />Settings</h2>
           <button onClick={handleClose} aria-label="Close Settings" className="settings-close flex items-center justify-center active:scale-90 transition-transform text-zinc-400">
             <XIcon size={22} strokeWidth={2.5} />
           </button>
@@ -178,7 +180,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, vaultOpen = false,
 
           {/* Appearance */}
           <section>
-            <label className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4">Look</label>
+            <h2 className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4">Look</h2>
             <div className="grid grid-cols-3 gap-2" role="group" aria-label="Color theme">
               {([
                 { value: 'light', label: 'Light', icon: LightThemeIcon },
@@ -209,7 +211,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, vaultOpen = false,
 
           {/* Accent Color */}
           <section>
-            <label className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4">Theme</label>
+            <h2 className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4">Theme</h2>
             <div className="flex flex-wrap gap-2.5 items-center">
               {MODERN_COLORS.map((color) => (
                 <button
@@ -247,7 +249,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, vaultOpen = false,
 
           {/* Display Size */}
           <section>
-            <label className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4">Text size</label>
+            <h2 className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4">Text size</h2>
             <div className="flex gap-2" role="group" aria-label="Display size">
               {(['compact', 'normal', 'enlarged'] as DisplaySize[]).map(size => (
                 <button
@@ -268,15 +270,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ prefs, vaultOpen = false,
 
           {/* Passcode */}
           <section>
-            <label className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-3">Code</label>
+            <h2 className="block text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-3">Code</h2>
             <div className="passcode-row">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="text-zinc-500"><LockIcon /></div>
                   <h3 className="font-bold">Code</h3>
                 </div>
-                <button role="switch" aria-checked={codeOn} aria-label="Code" onClick={toggleCode} className="relative shrink-0 w-12 h-5 p-0 rounded-full transition-colors outline-none" style={{ backgroundColor: codeOn ? accent : '#3f3f46', height: 20, minHeight: 20 }}>
-                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${codeOn ? 'translate-x-7' : ''}`} />
+                <button role="switch" aria-checked={codeOn} aria-label="Code" onClick={toggleCode} className="relative shrink-0 w-12 h-5 p-0 rounded-full transition-colors outline-none" style={{ backgroundColor: strongColors ? (codeOn ? '#ffef00' : '#767676') : (codeOn ? accent : '#3f3f46'), height: 20, minHeight: 20 }}>
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full transition-transform ${codeOn ? 'translate-x-7' : ''}`} style={{ backgroundColor: strongColors && codeOn ? '#000000' : '#ffffff' }} />
                 </button>
               </div>
               {codeOn && !isChangingPasscode && (
